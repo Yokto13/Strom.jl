@@ -10,8 +10,8 @@ function mean(v::Vector{<:Numeric64}, sz::Int64)
 end
 
 struct Dato
-    y::Numeric64
     x::Vector{Numeric64}
+    y::Numeric64
 end
 
 

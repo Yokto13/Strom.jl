@@ -1,3 +1,4 @@
+    end
 include("utils.jl")
 include("node.jl")
 
@@ -18,13 +19,13 @@ mutable struct RegressionTree
 
     function stop_dividing(n::Node)
         if size(n.examples) < 3
-            true
+            return true
         end
-        false
+        return false
     end
 
     function evaluate(left::Node, right::Node)
-        MSE(left) + MSE(right)
+        return MSE(left) + MSE(right)
     end
 
     function MSE(n::Node)

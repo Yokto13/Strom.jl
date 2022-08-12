@@ -105,10 +105,15 @@ mutable struct RegressionTree
     end
 
     function build_tree()
-        root = Node()
-        root.example_indices = Vector(1:size(data))
+        root = Node(Vector(1:size(data)))
         build(root)
     end
 end
 
-rt = RegressionTree()
+data = [
+        Dato([1,2,3], 0)
+        Dato([1,2,2], 1)
+        Dato([1,0,2], 1)
+        Dato([10,2,3], 0)
+       ]
+#rt = RegressionTree(Node(), data)

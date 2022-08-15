@@ -46,12 +46,15 @@ end
 RegTree(data) = RegTree(data, RegNode(), 1, nothing)
 RegTree(data, minnode, maxdepth) = RegTree(data, RegNode(), minnode, maxdepth)
 
-""" calcprediction(n, data)
+""" 
+    calcprediction(n, data)
 
 Calculates prediction for `n` on `n.datainds`.
 
 This function should be used *only* in setprediction!
 and should *not* be exposed to the outside.
+For predictions to be sensible, 
+followup actions ought to be done in setprediction!.
 """
 function calcprediction(n::RegNode, data)
     pred::Float64 = 0.0

@@ -27,7 +27,7 @@ setprediction!(n, data)
 # splitnode
 data = [Dato([1], 1), Dato([1],1), Dato([2], 3)]
 n = RegNode([1, 2, 3])
-l, r = splitnode(1, 2, n)
+l, r = splitnode(1, 2, n, data)
 @test length(l.datainds) == 2
 @test length(r.datainds) == 1
 
@@ -52,6 +52,30 @@ println("The best splitval is ", n.splitval)
 @test n.splitval > 1.1
 @test n.splitval < 2
 
+# get_stopcondition
+rt = RegTree(data, 2, 5)
+cond = get_stopcondition(rt)
+n = RegNode([1,3])
+n.depth = 4
+@test !cond(n)
+rt.maxdepth = 3
+@test cond(n)
+rt.maxdepth = 5
+rt.minnode = 4
+@test cond(n) 
+rt.maxdepth = 5
+rt.minnode = 1
+@test !cond(n) 
+rt.maxdepth = nothing
+rt.minnode = nothing
+@test !cond(n) 
+rt.maxdepth = 1
+rt.minnode = nothing
+@test cond(n) 
+rt.maxdepth = nothing
+rt.minnode = 10
+@test cond(n) 
+
 # build and predict!
 data = [
         Dato([1,2,3], 0),
@@ -67,3 +91,4 @@ for d=data
     @test p == predict(d, rt.root)
     @test p == d.y
 end
+

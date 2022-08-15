@@ -20,7 +20,15 @@ size(d::Dato) = (size(d.x))
 length(d::Dato) = (length(d.x))
 getindex(d::Dato, i::Integer) = (d.x[i])
 
-
 println([1,2,3])
 println(typeof([1,2,3]))
 println(mean([1,2,3], 3))
+
+struct Data
+    data::Vector{Dato}
+    classcnt::Integer
+end
+
+size(d::Data) = (size(d.data))
+length(d::Data) = (length(d.data))
+getindex(d::Data, i::Integer) = (d.data[i])

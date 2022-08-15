@@ -6,10 +6,17 @@ using Test
 eps = 1e-7
 
 # setprediction!
+# Regression
 data = [Dato([1], 1), Dato([1],1), Dato([2], 3)]
 n = RegNode([1,3])
 setprediction!(n, data)
 @test (n.pred - 2) < eps
+@test_throws Exception setprediction!(n, [])
+# Classification
+data = Data([Dato([1], 1), Dato([1],2), Dato([2], 3)], 3)
+n = ClsNode([1,3])
+setprediction!(n, data)
+@test (n.pred - [0.5, 0., 0.5]) < zeros(3) .+ eps
 @test_throws Exception setprediction!(n, [])
 
 # stopdividing
@@ -18,11 +25,11 @@ n = ClsNode([1,2,3,4])
 n = ClsNode([1,2])
 @test stopdividing(n, x -> length(x.datainds) < 4) == true
 
-# MSE
+# SMSE
 data = [Dato([1], 1), Dato([1],1), Dato([2], 3)]
 n = RegNode([1, 2, 3])
 setprediction!(n, data)
-@test (MSE(n) - 8/9) < eps
+@test (SMSE(n,data) - 8/3) < eps
 
 # splitnode
 data = [Dato([1], 1), Dato([1],1), Dato([2], 3)]
@@ -92,3 +99,35 @@ for d=data
     @test p == d.y
 end
 
+# gini
+data = Data([
+        Dato([1,2,3], 3),
+        Dato([1,2,2], 1),
+        Dato([1,0,2], 2),
+        Dato([10,2,3], 2),
+       ], 3)
+n1 = ClsNode([1, 2, 3, 4])
+setprediction!(n1, data)
+n2 = ClsNode([1, 3, 4])
+setprediction!(n2, data)
+n3 = ClsNode([3, 4])
+setprediction!(n3, data)
+@test gini(n1, data) > gini(n2, data)
+@test gini(n2, data) > gini(n3, data)
+
+# `entropy` criterion
+data = Data([
+        Dato([1,2,3], 3),
+        Dato([1,2,2], 1),
+        Dato([1,0,2], 2),
+        Dato([10,2,3], 2),
+       ], 3)
+n1 = ClsNode([1, 2, 3, 4])
+setprediction!(n1, data)
+n2 = ClsNode([1, 3, 4])
+setprediction!(n2, data)
+n3 = ClsNode([3, 4])
+setprediction!(n3, data)
+println("entropy ", entropy(n1, data))
+@test entropy(n1, data) > entropy(n2, data)
+@test entropy(n2, data) > entropy(n3, data)

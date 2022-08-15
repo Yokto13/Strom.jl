@@ -1,4 +1,4 @@
-using Random
+using Random 
 
 rng_seed = 42
 Random.seed!(rng_seed)
@@ -24,7 +24,7 @@ RegNode() = RegNode(false, -1, [], -1, -1, nothing, nothing, 1)
 
 mutable struct ClsNode <: Node
     isleaf::Bool
-    pred::Numeric64
+    pred::Vector
     datainds::Vector{Int64}
     splitval::Numeric64
     ftr::Integer
@@ -33,8 +33,8 @@ mutable struct ClsNode <: Node
     depth::Integer
 end
 
-ClsNode(v::Vector{Int64}) = ClsNode(false, -1, v, -1, -1, nothing, nothing, 1)
-ClsNode() = ClsNode(false, -1, [], -1, -1, nothing, nothing, 1)
+ClsNode(v::Vector{Int64}) = ClsNode(false, [], v, -1, -1, nothing, nothing, 1)
+ClsNode() = ClsNode(false, [], [], -1, -1, nothing, nothing, 1)
 
 mutable struct RegTree <: Tree
     data::Vector{Dato}
@@ -43,7 +43,7 @@ mutable struct RegTree <: Tree
     maxdepth
 end
 
-RegTree(data) = RegTree(data, RegNode(), 2, nothing)
+RegTree(data) = RegTree(data, RegNode(), 1, nothing)
 RegTree(data, minnode, maxdepth) = RegTree(data, RegNode(), minnode, maxdepth)
 
 """
@@ -59,6 +59,17 @@ function setprediction!(n::RegNode, data)
         result += data[i].y
     end
     result/= sz
+    n.pred = result
+end
+
+function setprediction!(n::ClsNode, data::Data)
+    result = zeros(data.classcnt)
+    sz = length(n.datainds)
+    for j = 1:sz
+        i = n.datainds[j]
+        result[data[i].y] += 1
+    end
+    result/= sz 
     n.pred = result
 end
 
@@ -82,6 +93,7 @@ end
 """
 function stopdividing(n::Node, tree::Tree)
     cond = get_stopcondition(tree)
+    cond = x -> length(x.datainds) < tree.minnode
     return stopdividing(n, cond)
 end
 
@@ -91,41 +103,71 @@ end
 Creates partial function from `tree` which can determine node split.
 """
 function get_stopcondition(tree::Tree)
-    return x -> ((!isnothing(tree.maxdepth) && n.depth >= tree.maxdepth) 
-                 || (!isnothing(tree.minnode) && length(n.datainds) < tree.minnode)
+    return x -> ((!isnothing(tree.maxdepth) && x.depth >= tree.maxdepth) 
+                 || (!isnothing(tree.minnode) && length(x.datainds) < tree.minnode)
                 )
 end
 
 """
-    evaluate(n)
+    evaluate(n, data)
 
 Evaluate node.
 """
-function evaluate(n::RegNode)
-    return MSE(n)
+function evaluate(n::RegNode, data)
+    return SMSE(n, data)
 end
 """
-    evaluate(left, right)
+    evaluate(left, right, data)
 
 Calculate error for left and right and get its sum.
 
 Used to score how good a certain node split is.
 """
-function evaluate(left::RegNode, right::RegNode)
-    return evaluate(left) + evaluate(right)
+function evaluate(left::RegNode, right::RegNode, data)
+    return evaluate(left, data) + evaluate(right, data)
 end
 
-function MSE(n::Node)
+"""
+    SMSE(n, data)
+
+Sum of mean squared errors belonging to `n.datainds`,
+"""
+function SMSE(n::Node, data)
     sz = length(n.datainds)
     res::Float64 = 0.0
     for j = 1:sz
         i = n.datainds[j]
         res += (n.pred - data[i].y)^2
     end
-    if sz != 0
-        res /= sz
-    end
+    #if sz != 0
+    #    res /= sz
+    #end
     return res
+end
+
+"""
+    entropy(n, data)
+
+Get the entropy criterion for prediction in the given node `n`.
+
+One possible criterion for classification.
+Adds small epsilon to all values in `n.pred` so 0 in log is avoided.
+"""
+function entropy(n::Node, data)
+    eps = 1e-9
+    return - length(n.datainds) * sum(n.pred .* log2.(n.pred .+ eps))
+end
+
+"""
+    gini(n, data)
+
+Get the gini criterion for prediction in the given node `n`.
+
+One possible criterion for classification.
+"""
+function gini(n::Node, data)
+    println(n.pred)
+    return length(n.datainds) * sum(n.pred .* (1 .- n.pred))
 end
 
 """
@@ -137,8 +179,8 @@ All points < `val` are placed to the `left`, the rest to the `right`.
 """
 function splitnode(ftr, val, n::Node, data)
     left, right = typeof(n)(), typeof(n)()
+    left.depth = right.depth = n.depth + 1
     for j = 1:length(n.datainds)
-        #println(j, " ", ftr)
         if data[n.datainds[j]][ftr] < val
             push!(left.datainds, n.datainds[j])
         else
@@ -155,7 +197,7 @@ function evaluatesplit(ftr::Int64, val::Float64, n::Node, data)
     left, right = splitnode(ftr, val, n, data)
     setprediction!(left, data)
     setprediction!(right, data)
-    return evaluate(left, right)
+    return evaluate(left, right, data)
 end
 
 """
@@ -181,9 +223,6 @@ Find min and max of `ftr` in `n.datainds`.
 function getextremas(ftr::Int64, n::Node, data)
     mi::Float64 = Inf
     ma::Float64 = -Inf
-    #println("ftr ",ftr) 
-    #println(data)
-    #println(typeof(data))
     for j = 1:length(n.datainds)
         ex_i = n.datainds[j]
         mi = min(mi, data[ex_i][ftr])
@@ -212,16 +251,15 @@ end
 
 Find the best feature and its val for the given `node`.
 
-If `splitval_cnt` is unspecified, value of 50 is used.
+If `splitval_cnt` is unspecified, value of 10 is used.
 """
-function findsplit!(n::Node, data, splitval_cnt::Integer=50)
+function findsplit!(n::Node, data, splitval_cnt::Integer=10)
     setprediction!(n, data)
-    bestscore = evaluate(n)
+    bestscore = evaluate(n, data)
     bestftr, bestval = -2, 0.0
     for ftr = 1:length(data[1])
         mi, ma = getextremas(ftr, n, data)
         for splitval = uniform(mi, ma, splitval_cnt)
-            splitval = (ma + mi) / 2
             candidatescore = evaluatesplit(ftr, splitval, n, data)
             if candidatescore < bestscore
                 bestscore = candidatescore
@@ -296,3 +334,14 @@ function predict(datapoint, node::Node)
     end
 end
 
+function printtree(n, space)
+    if isnothing(n)
+        return nothing
+    end
+    space += 4
+    printtree(n.right, space)
+    print("\n")
+    print("    ")
+    print(n.pred)
+    printtree(n.left, space)
+end

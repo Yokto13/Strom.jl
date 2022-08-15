@@ -13,7 +13,7 @@ for i=1:506
     push!(data, Dato(row[1:13], row[14]))
 end
 
-train = data[1:400]
+train = data[1:100]
 test = data[401:506]
 
 function MSE(y_hat, y)
@@ -28,14 +28,14 @@ function MSE_all(data, tree)
     all
 end
 
-rt1 = RegTree(train, x -> length(x.datainds) < 2); buildtree!(rt1)
-println("Tree 1 built.")
-rt2 = RegTree(train, x -> length(x.datainds) < 10); buildtree!(rt2)
-println("Tree 2 built.")
-rt3 = RegTree(train, x -> length(x.datainds) < 20); buildtree!(rt3)
-println("Tree 3 built.")
-rt4 = RegTree(train, x -> length(x.datainds) < 100); buildtree!(rt4)
-println("Tree 4 built.")
+rt1 = RegTree(train, 2, 10000); buildtree!(rt1)
+println("Tree 1 built. ",rt1.minnode)
+rt2 = RegTree(train, 10, 10000); buildtree!(rt2)
+println("Tree 2 built. ",rt2.minnode)
+rt3 = RegTree(train, 20, 10000); buildtree!(rt3)
+println("Tree 3 built. ",rt3.minnode)
+rt4 = RegTree(train, 100, 10000); buildtree!(rt4)
+println("Tree 4 built. ",rt4.minnode)
 
 println("Tree 1 loss on train ", MSE_all(train, rt1))
 println("Tree 1 loss on test ", MSE_all(test, rt1))

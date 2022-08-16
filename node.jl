@@ -6,7 +6,7 @@ Random.seed!(rng_seed)
 include("utils.jl")
 
 abstract type Node end
-abstract type Tree end
+abstract type ClsNode <: Node end
 
 mutable struct RegNode <: Node
     isleaf::Bool
@@ -22,7 +22,7 @@ end
 RegNode(v::Vector{Int64}) = RegNode(false, -1, v, -1, -1, nothing, nothing, 1)
 RegNode() = RegNode(false, -1, [], -1, -1, nothing, nothing, 1)
 
-mutable struct ClsNode <: Node
+mutable struct GiniNode <: ClsNode
     isleaf::Bool
     pred::Vector
     datainds::Vector{Int64}
@@ -33,18 +33,32 @@ mutable struct ClsNode <: Node
     depth::Integer
 end
 
-ClsNode(v::Vector{Int64}) = ClsNode(false, [], v, -1, -1, nothing, nothing, 1)
-ClsNode() = ClsNode(false, [], [], -1, -1, nothing, nothing, 1)
+GiniNode(v::Vector{Int64}) = GiniNode(false, [], v, -1, -1, nothing, nothing, 1)
+GiniNode() = GiniNode(false, [], [], -1, -1, nothing, nothing, 1)
 
-mutable struct RegTree <: Tree
-    data::Vector{Dato}
-    root::RegNode
+mutable struct EntropyNode <: ClsNode
+    isleaf::Bool
+    pred::Vector
+    datainds::Vector{Int64}
+    splitval::Numeric64
+    ftr::Integer
+    left::Union{Nothing, Node}
+    right::Union{Nothing, Node}
+    depth::Integer
+end
+
+mutable struct Tree
+    data
+    root::Node
     minnode
     maxdepth
 end
 
-RegTree(data) = RegTree(data, RegNode(), 1, nothing)
-RegTree(data, minnode, maxdepth) = RegTree(data, RegNode(), minnode, maxdepth)
+RegTree(data) = Tree(data, RegNode(), 1)
+RegTree(data, minnode, maxdepth) = Tree(data, RegNode(), minnode, maxdepth)
+
+ClsTree(data) = Tree(data, GiniNode(), 1, nothing)
+ClsTree(data, minnode, maxdepth) = Tree(data, GiniNode(), minnode, maxdepth)
 
 """ 
     calcprediction(n, data)
@@ -52,7 +66,7 @@ RegTree(data, minnode, maxdepth) = RegTree(data, RegNode(), minnode, maxdepth)
 Calculates prediction for `n` on `n.datainds`.
 
 This function should be used *only* in setprediction!
-and should *not* be exposed to the outside.
+and should **not** be exposed to the outside.
 For predictions to be sensible, 
 followup actions ought to be done in setprediction!.
 """
@@ -130,6 +144,12 @@ Evaluate node.
 function evaluate(n::RegNode, data)
     return SMSE(n, data)
 end
+function evaluate(n::GiniNode, data)
+    return gini(n, data)
+end
+function evaluate(n::EntropyNode, data)
+    return entropy(n, data)
+end
 """
     evaluate(left, right, data)
 
@@ -137,7 +157,7 @@ Calculate error for left and right and get its sum.
 
 Used to score how good a certain node split is.
 """
-function evaluate(left::RegNode, right::RegNode, data)
+function evaluate(left::Node, right::Node, data)
     return evaluate(left, data) + evaluate(right, data)
 end
 
@@ -167,7 +187,7 @@ Get the entropy criterion for prediction in the given node `n`.
 One possible criterion for classification.
 Adds small epsilon to all values in `n.pred` so 0 in log is avoided.
 """
-function entropy(n::Node, data)
+function entropy(n::EntropyNode, data)
     eps = 1e-9
     return - length(n.datainds) * sum(n.pred .* log2.(n.pred .+ eps))
 end
@@ -179,8 +199,7 @@ Get the gini criterion for prediction in the given node `n`.
 
 One possible criterion for classification.
 """
-function gini(n::Node, data)
-    println(n.pred)
+function gini(n::GiniNode, data)
     return length(n.datainds) * sum(n.pred .* (1 .- n.pred))
 end
 
@@ -205,7 +224,7 @@ function splitnode(ftr, val, n::Node, data)
 end
 
 """
-    eva;iatesplit(ftr, val, n, data)
+    evaluatesplit(ftr, val, n, data)
 """
 function evaluatesplit(ftr::Int64, val::Float64, n::Node, data)
     left, right = splitnode(ftr, val, n, data)
@@ -270,7 +289,7 @@ If `splitval_cnt` is unspecified, value of 10 is used.
 function findsplit!(n::Node, data, splitval_cnt::Integer=10)
     setprediction!(n, data)
     bestscore = evaluate(n, data)
-    bestftr, bestval = -2, 0.0
+    bestftr, bestval = -1, 0.0
     for ftr = 1:length(data[1])
         mi, ma = getextremas(ftr, n, data)
         for splitval = uniform(mi, ma, splitval_cnt)
@@ -305,13 +324,16 @@ function build!(parent::Node, tree)
         setprediction!(parent, data)
     else
         findsplit!(parent, data)
-        if parent.ftr != -2
+        if parent.ftr != -1
             parent.left, parent.right = splitnode(parent.ftr, parent.splitval, 
                                                 parent, data)
             build!(parent.left, tree)
             build!(parent.right, tree)
         else
-            parent.ftr = -1
+            # This happens when node attemps to split but the criterion is
+            # minimized when unsplit. 
+            # I don't know if this is still happening after the last rework
+            # of criteria. TODO check this.
             parent.isleaf = true
         end
     end
@@ -332,6 +354,7 @@ end
 
 """
     predict(datapoint, model)
+    predict(datapoints, model)
 """
 function predict(datapoint, tree)
     predict(datapoint, tree.root)
@@ -348,14 +371,31 @@ function predict(datapoint, node::Node)
     end
 end
 
+function predictall(datapoints, tree)
+    predictall(datapoints, tree.root)
+end
+
+function predictall(datapoints, node::Node)
+    predictions = []
+    for dp=datapoints
+        push!(predictions, predict(dp, node))
+    end
+    return predictions
+end
+
+
+# Broken
 function printtree(n, space)
     if isnothing(n)
         return nothing
     end
-    space += 4
+    space += 1
     printtree(n.right, space)
     print("\n")
-    print("    ")
+    for i=1:space
+        print("    ")
+    end
     print(n.pred)
     printtree(n.left, space)
 end
+

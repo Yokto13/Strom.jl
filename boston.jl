@@ -16,18 +16,6 @@ end
 train = data[1:100]
 test = data[401:506]
 
-function MSE(y_hat, y)
-    return (y_hat - y) ^ 2 
-end
-
-function MSE_all(data, tree)
-    all = 0
-    for d=data
-        all += MSE(predict(d.x, tree), d.y)
-    end
-    all
-end
-
 rt1 = RegTree(train, 2, 10000); buildtree!(rt1)
 println("Tree 1 built. ",rt1.minnode)
 rt2 = RegTree(train, 10, 10000); buildtree!(rt2)

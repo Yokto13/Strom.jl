@@ -149,5 +149,6 @@ end
         predict(data[1], forest.trees[i])
         @test (forest.trees[i].data !== forest.trees[1].data)
     end
+    @test false
 end
 

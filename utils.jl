@@ -1,4 +1,4 @@
-import Base: size, getindex, length, iterate
+import Base: size, getindex, length, iterate, setindex!
 
 Numeric64 = Union{Float64, Int64}
 
@@ -24,7 +24,7 @@ println([1,2,3])
 println(typeof([1,2,3]))
 println(mean([1,2,3], 3))
 
-struct Data
+mutable struct Data <: AbstractArray{Dato, 1}
     data::Vector{Dato}
     classcnt::Integer
 end
@@ -32,6 +32,10 @@ end
 size(d::Data) = (size(d.data))
 length(d::Data) = (length(d.data))
 getindex(d::Data, i::Integer) = (d.data[i])
+setindex!(d::Data, v, i::Int) = (d.data[i] = v)
+# setindex!(d::Data, v, I::Vararg{Int, 1}) = (d.data[I] = v)
+IndexStyle(::Data) = (IndexLinear())
+
 function iterate(d::Data)
     return iterate(d, 0)
 end
@@ -96,5 +100,18 @@ function accuracy(pairs)
         end
     end
     return correctcnt / length(pairs)
+end
+
+"""
+    uniform(mi, ma, cnt)
+
+Generate `cnt` float values uniformly between `mi` and `ma`.
+"""
+function uniform(mi, ma, cnt)
+    out = rand(cnt)
+    @assert(ma >= mi)
+    diff = ma - mi
+    out = out * diff .+ mi
+    return out
 end
 

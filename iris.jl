@@ -63,6 +63,14 @@ trees = [
         ClsTree(train, 5, 3),
         ClsTree(train, 10, 3),
         ClsTree(train, 20, 3),
+        ClsTree(train, 20, 2),
+        ClsTree(train, 1, 2),
+        ClsTree(train, 3, 2),
+        ClsTree(train, 5, 2),
+        ClsTree(train, 10, 2),
+        ClsTree(train, 20, 2),
+        ClsTree(train, 40, 2),
+        ClsTree(train, 60, 2),
        ]
 
 for t=trees

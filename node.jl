@@ -47,6 +47,10 @@ mutable struct EntropyNode <: ClsNode
     depth::Integer
 end
 
+EntropyNode(v::Vector{Int64}) = EntropyNode(false, [], v, -1, -1, nothing,
+                                            nothing, 1)
+EntropyNode() = EntropyNode(false, [], [], -1, -1, nothing, nothing, 1)
+
 mutable struct Tree
     data
     root::Node
@@ -54,7 +58,7 @@ mutable struct Tree
     maxdepth
 end
 
-RegTree(data) = Tree(data, RegNode(), 1)
+RegTree(data) = Tree(data, RegNode(), 1, nothing)
 RegTree(data, minnode, maxdepth) = Tree(data, RegNode(), minnode, maxdepth)
 
 ClsTree(data) = Tree(data, GiniNode(), 1, nothing)
@@ -267,19 +271,6 @@ function getextremas(ftr::Int64, n::Node, data)
 end
 
 """
-    gensplits(mi, ma, cnt)
-
-Generate `cnt` float values uniformly between `mi` and `ma`.
-"""
-function uniform(mi, ma, cnt)
-    out = rand(cnt)
-    @assert(ma >= mi)
-    diff = ma - mi
-    out = out * diff .+ mi
-    return out
-end
-
-"""
     findsplit!(n, data[, splitval_cnt])
 
 Find the best feature and its val for the given `node`.
@@ -356,7 +347,7 @@ end
     predict(datapoint, model)
     predict(datapoints, model)
 """
-function predict(datapoint, tree)
+function predict(datapoint, tree::Tree)
     predict(datapoint, tree.root)
 end
 
@@ -371,7 +362,7 @@ function predict(datapoint, node::Node)
     end
 end
 
-function predictall(datapoints, tree)
+function predictall(datapoints, tree::Tree)
     predictall(datapoints, tree.root)
 end
 

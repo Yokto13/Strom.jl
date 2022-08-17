@@ -17,10 +17,11 @@ mutable struct RegNode <: Node
     left::Union{Nothing, Node}
     right::Union{Nothing, Node}
     depth::Integer
+    id::Integer
 end
 
-RegNode(v::Vector{Int64}) = RegNode(false, -1, v, -1, -1, nothing, nothing, 1)
-RegNode() = RegNode(false, -1, [], -1, -1, nothing, nothing, 1)
+RegNode(v::Vector{Int64}) = RegNode(false, -1, v, -1, -1, nothing, nothing, 1, 1)
+RegNode() = RegNode(false, -1, [], -1, -1, nothing, nothing, 1, 1)
 
 mutable struct GiniNode <: ClsNode
     isleaf::Bool
@@ -31,10 +32,11 @@ mutable struct GiniNode <: ClsNode
     left::Union{Nothing, Node}
     right::Union{Nothing, Node}
     depth::Integer
+    id::Integer
 end
 
-GiniNode(v::Vector{Int64}) = GiniNode(false, [], v, -1, -1, nothing, nothing, 1)
-GiniNode() = GiniNode(false, [], [], -1, -1, nothing, nothing, 1)
+GiniNode(v::Vector{Int64}) = GiniNode(false, [], v, -1, -1, nothing, nothing, 1, 1)
+GiniNode() = GiniNode(false, [], [], -1, -1, nothing, nothing, 1, 1)
 
 mutable struct EntropyNode <: ClsNode
     isleaf::Bool
@@ -45,11 +47,12 @@ mutable struct EntropyNode <: ClsNode
     left::Union{Nothing, Node}
     right::Union{Nothing, Node}
     depth::Integer
+    id::Integer
 end
 
 EntropyNode(v::Vector{Int64}) = EntropyNode(false, [], v, -1, -1, nothing,
-                                            nothing, 1)
-EntropyNode() = EntropyNode(false, [], [], -1, -1, nothing, nothing, 1)
+                                            nothing, 1, 1)
+EntropyNode() = EntropyNode(false, [], [], -1, -1, nothing, nothing, 1, 1)
 
 mutable struct Tree
     data
@@ -217,6 +220,8 @@ All points < `val` are placed to the `left`, the rest to the `right`.
 function splitnode(ftr, val, n::Node, data)
     left, right = typeof(n)(), typeof(n)()
     left.depth = right.depth = n.depth + 1
+    left.id = n.id * 2
+    right.id = n.id * 2 + 1
     for j = 1:length(n.datainds)
         if data[n.datainds[j]][ftr] < val
             push!(left.datainds, n.datainds[j])
@@ -234,7 +239,10 @@ function evaluatesplit(ftr::Int64, val::Float64, n::Node, data)
     left, right = splitnode(ftr, val, n, data)
     setprediction!(left, data)
     setprediction!(right, data)
-    return evaluate(left, right, data)
+    # Subtracting is 'correct' way of calculating criterium, but won't make 
+    # difference in this case.
+    return evaluate(left, right, data) - evaluate(n, data)
+    # return evaluate(left, right, data)
 end
 
 """

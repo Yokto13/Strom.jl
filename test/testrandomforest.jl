@@ -14,7 +14,7 @@ using Test
             Dato([0,2,1], 1),
             Dato([5,2,3], 3),
            ], 3)
-    treecnt = 40
+    treecnt = 200
     forest = RandomForest(data, treecnt, GiniNode())
     buildforest!(forest)
     for d=data
@@ -34,7 +34,7 @@ end
             Dato([0,2,1], 1),
             Dato([5,2,3], 3),
            ], 3)
-    treecnt = 50
+    treecnt = 200
     forest = RandomForest(data, treecnt, EntropyNode())
     buildforest!(forest)
     res = predictall(data, forest)

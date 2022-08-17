@@ -283,9 +283,9 @@ end
 
 Find the best feature and its val for the given `node`.
 
-If `splitval_cnt` is unspecified, value of 10 is used.
+If `splitval_cnt` is unspecified, value of 50 is used.
 """
-function findsplit!(n::Node, data, splitval_cnt::Integer=10)
+function findsplit!(n::Node, data, splitval_cnt::Integer=50)
     setprediction!(n, data)
     bestscore = evaluate(n, data)
     bestftr, bestval = -1, 0.0

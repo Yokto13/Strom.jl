@@ -5,9 +5,6 @@ using Gadfly
 
 include("../node.jl")
 
-g =smallgraph(:karate)
-gplot(g)
-
 function countnodes(tree::Tree)
     return countnodes(tree.root)
 end
@@ -41,17 +38,22 @@ function buildgraph(tree::Tree)
     return G, nodecnt, labels
 end
 
-function printtree(tree)
+"""
+    printtree(tree, outname, width, height)
+    
+Creates a simple SVG graphic of the `tree` and saves it to `outname`.
+
+# Arguments
+- `tree`
+- `outname`
+- `width`: of the resulting image, passed directly to Gadfly's SVG.
+- `height`: of the resulting image, passed directly to Gadfly's SVG.
+"""
+function printtree(tree, outname="tree.svg", width=√200cm, heigh=10cm)
     G, nodecnt, labels = buildgraph(tree)
-    #gplothtml(G, nodelabel=1:nodecnt, layout=random_layout)
-    #gplothtml(G, nodelabel=1:nodecnt, layout=circular_layout)
-    #gplothtml(G, nodelabel=1:nodecnt, layout=spectral_layout)
-    #gplothtml(G, nodelabel=1:nodecnt)
     xs, ys, paths = solve_positions(Zarate(), G)
-    println(xs)
-    println(ys)
     p = gplot(G, xs, ys, nodelabel=labels)
-    img = SVG("tree.svg", 14cm, 8cm)
+    img = SVG(outname, width, height)
     draw(img, p)
 end
 

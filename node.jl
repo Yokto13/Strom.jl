@@ -59,13 +59,20 @@ mutable struct Tree
     root::Node
     minnode
     maxdepth
+    ftrsubset::Float
 end
 
-RegTree(data) = Tree(data, RegNode(), 1, nothing)
-RegTree(data, minnode, maxdepth) = Tree(data, RegNode(), minnode, maxdepth)
+RegTree(data) = Tree(data, RegNode(), 1, nothing, 1.0)
+RegTree(data, minnode, maxdepth) = Tree(data, RegNode(), minnode, maxdepth, 1.0)
+RegTree(data, ftrsubset) = Tree(data, RegNode(), 1, nothing, ftrsubset)
+RegTree(data, minnode, maxdepth, ftrsubset) = Tree(data, RegNode(), minnode, 
+                                                   maxdepth, ftrsubset)
 
-ClsTree(data) = Tree(data, GiniNode(), 1, nothing)
-ClsTree(data, minnode, maxdepth) = Tree(data, GiniNode(), minnode, maxdepth)
+ClsTree(data) = Tree(data, GiniNode(), 1, nothing, 1.0)
+ClsTree(data, minnode, maxdepth) = Tree(data, GiniNode(), minnode, maxdepth, 1.0)
+ClsTree(data, ftrsubset) = Tree(data, GiniNode(), 1, nothing, 1.0, ftrsubset)
+ClsTree(data, minnode, maxdepth, ftrsubset) = Tree(data, GiniNode(), minnode, 
+                                                   maxdepth, 1.0, ftrsubset)
 
 """ 
     calcprediction(n, data)
@@ -278,18 +285,30 @@ function getextremas(ftr::Int64, n::Node, data)
     return (mi, ma)
 end
 
+function skipftr(ftrsusbet)
+    return ftrsubset < rand()
+end
+
 """
-    findsplit!(n, data[, splitval_cnt])
+    findsplit!(n, data, ftrsubset, splitval_cnt)
 
 Find the best feature and its val for the given `node`.
 
-If `splitval_cnt` is unspecified, value of 50 is used.
+# Arguments
+- `splitval_cnt`: if unspecified, value of 5 is used.
+    `splitval_cnt` has an influence on the quality of the tree.
+    Lower values fight againts overfitting, but too small ones prevent
+    the tree from learning.
+- `ftrsubset`: the franction of features to split on. For single tree
+    you probably want 1.0. For forests this is a hyperparameter to be tuned.
+    √ of the number of features is usally a good idea, remember it need a fraction.
 """
-function findsplit!(n::Node, data, splitval_cnt::Integer=50)
+function findsplit!(n::Node, data, ftrsubset, splitval_cnt::Integer=5)
     setprediction!(n, data)
     bestscore = evaluate(n, data)
     bestftr, bestval = -1, 0.0
     for ftr = 1:length(data[1])
+        if skipftr(ftrsubset) && continue
         mi, ma = getextremas(ftr, n, data)
         for splitval = uniform(mi, ma, splitval_cnt)
             candidatescore = evaluatesplit(ftr, splitval, n, data)
@@ -322,7 +341,7 @@ function build!(parent::Node, tree)
         parent.isleaf = true
         setprediction!(parent, data)
     else
-        findsplit!(parent, data)
+        findsplit!(parent, data, tree.ftrsubset)
         if parent.ftr != -1
             parent.left, parent.right = splitnode(parent.ftr, parent.splitval, 
                                                 parent, data)

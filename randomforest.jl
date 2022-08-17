@@ -76,10 +76,13 @@ function createtrees!(forest::RandomForest)
     forest.trees = []
     datasetsize = forest.datasetsubset(length(forest.data))
     for i=1:forest.treecnt
-        treedata = Data(forest.data.data, forest.data.classcnt)
+        # This is sooooo inefficient
+        # TODO solve deep copy thing
+        # TODO some profiling
+        treedata = Data(deepcopy(forest.data.data), forest.data.classcnt)
         shuffle!(treedata.data)
         treedata.data = treedata[1:datasetsize]
-        t = Tree(treedata, forest.node, forest.minnode,
+        t = Tree(treedata, deepcopy(forest.node), forest.minnode,
                  forest.maxdepth)
         push!(forest.trees, t)
     end

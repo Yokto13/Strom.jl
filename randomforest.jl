@@ -17,6 +17,18 @@ RandomForest(data, treecnt, node) = RandomForest(data, [], treecnt,
                                                      x -> Integer(ceil(sqrt(x))),
                                                      x -> Integer(ceil(sqrt(x))))
 
+RandomForest(data, treecnt, node, minnode=1, maxdepth=10,) = 
+RandomForest(data, 
+             [], 
+             treecnt, 
+             node, 
+             minnode, 
+             maxdepth, 
+             true,
+             x -> Integer(ceil(sqrt(x))),
+             x -> Integer(ceil(sqrt(x)))
+           )
+
 """
     predict(datapoint, forest)
 

@@ -3,6 +3,7 @@ using DataFrames
 
 include("utils.jl")
 include("node.jl")
+include("randomforest.jl")
 
 dataset = Iris()
 
@@ -31,11 +32,14 @@ end
 
 shuffle!(data)
 
-train = data[1:100]
-test = data[100:150]
+train = data[1:135]
+test = data[136:150]
 
 train = Data(train, 3)
 test =  Data(test, 3)
+
+#println(train)
+#println(test)
 
 trees = [
         ClsTree(train, 1, 10000),
@@ -73,17 +77,29 @@ trees = [
         ClsTree(train, 60, 2),
        ]
 
+forests = [
+        RandomForest(train, 5, GiniNode()),
+        RandomForest(train, 10, GiniNode()),
+        RandomForest(train, 50, GiniNode()),
+        RandomForest(train, 100, GiniNode()),
+        RandomForest(train, 300, GiniNode()),
+        RandomForest(train, 3000, GiniNode(), 3, 3),
+          ]
+
 for t=trees
     buildtree!(t)
 end
 
+for f=forests
+    buildforest!(f)
+end
 for t=trees
     println(t.minnode, " ", t.maxdepth)
     prds = predictall(train, t)
     prds = argmaxx(prds)
     pairs = []
     for i=1:length(train)
-        push!(pairs,(prds[i], data[i].y))
+        push!(pairs,(prds[i], train[i].y))
     end
     println(accuracy(pairs))
 
@@ -91,7 +107,29 @@ for t=trees
     prds = argmaxx(prds)
     pairs = []
     for i=1:length(test)
-        push!(pairs,(prds[i], data[i].y))
+        push!(pairs,(prds[i], test[i].y))
+    end
+    println(accuracy(pairs))
+    println("-----------")
+end
+
+for t=forests
+    println(t.minnode, " ", t.maxdepth)
+    prds = predictall(train, t)
+    println(prds[1])
+    prds = argmaxx(prds)
+    pairs = []
+    for i=1:length(train)
+        push!(pairs,(prds[i], train[i].y))
+    end
+    println(accuracy(pairs))
+
+    prds = predictall(test, t)
+    println(prds[1])
+    prds = argmaxx(prds)
+    pairs = []
+    for i=1:length(test)
+        push!(pairs,(prds[i], test[i].y))
     end
     println(accuracy(pairs))
     println("-----------")

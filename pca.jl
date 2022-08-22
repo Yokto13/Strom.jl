@@ -1,3 +1,11 @@
+""" 
+Functions in this feel were written for author's enjoynment. 
+They are not optimized and their tests are very basic.
+Most of them are implemented in LinearAlgebra package and this 
+package should be used in real applications instead of this.
+
+--arklez
+"""
 using LinearAlgebra
 
 function eig_vals(A, iters=100)
@@ -54,6 +62,11 @@ function SVD(A)
     return(U, Σ, V)
 end
 
+"""
+    compute_PCA(A, dims)
+
+Computes PCA and returns `V` that can be used like ROW_EXAMPLES * V.
+"""
 function compute_PCA(A, dims)
     elcnt = size(A)[1] * size(A)[2]
     U, Σ, V = SVD(A .- sum(A) / elcnt)    
@@ -61,14 +74,21 @@ function compute_PCA(A, dims)
     return V'[:, range .<= dims]
 end
 
+"""
+    PCA(A[,precomputed, dims])
+
+Principal Component Analysis working on rows of A.
+
+One and only one of `precomputed` and `dims` needs to be set.
+"""
 function PCA(A, precomputed=nothing, dims=nothing)
     if isnothing(precomputed) && isnothing(dims)
-        throw(ArgumentError("One of the optional arguments must be set but 
+        throw(ArgumentError("One of the optional arguments should be set but 
                             they are both `nothing`!"))
     end
     if !isnothing(precomputed) && !isnothing(dims)
-        throw(ArgumentError("Only one of the optional arguments must be set but 
-                            they are both `nothing`!"))
+        throw(ArgumentError("Only one of the optional arguments should be set but 
+                            they are both set!"))
     end
     if isnothing(precomputed)
         precomputed = compute_PCA(A, dims)

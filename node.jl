@@ -59,7 +59,7 @@ mutable struct Tree
     root::Node
     minnode
     maxdepth
-    ftrsubset::Float
+    ftrsubset
 end
 
 RegTree(data) = Tree(data, RegNode(), 1, nothing, 1.0)
@@ -70,9 +70,11 @@ RegTree(data, minnode, maxdepth, ftrsubset) = Tree(data, RegNode(), minnode,
 
 ClsTree(data) = Tree(data, GiniNode(), 1, nothing, 1.0)
 ClsTree(data, minnode, maxdepth) = Tree(data, GiniNode(), minnode, maxdepth, 1.0)
-ClsTree(data, ftrsubset) = Tree(data, GiniNode(), 1, nothing, 1.0, ftrsubset)
+ClsTree(data, ftrsubset) = Tree(data, GiniNode(), 1, nothing, ftrsubset)
 ClsTree(data, minnode, maxdepth, ftrsubset) = Tree(data, GiniNode(), minnode, 
-                                                   maxdepth, 1.0, ftrsubset)
+                                                   maxdepth, ftrsubset)
+
+Tree(data, root, minnode, maxdepth) = Tree(data, root, minnode, maxdepth, 1.0)
 
 """ 
     calcprediction(n, data)
@@ -285,7 +287,7 @@ function getextremas(ftr::Int64, n::Node, data)
     return (mi, ma)
 end
 
-function skipftr(ftrsusbet)
+function skipftr(ftrsubset)
     return ftrsubset < rand()
 end
 
@@ -308,7 +310,7 @@ function findsplit!(n::Node, data, ftrsubset, splitval_cnt::Integer=5)
     bestscore = evaluate(n, data)
     bestftr, bestval = -1, 0.0
     for ftr = 1:length(data[1])
-        if skipftr(ftrsubset) && continue
+        if skipftr(ftrsubset) && continue end
         mi, ma = getextremas(ftr, n, data)
         for splitval = uniform(mi, ma, splitval_cnt)
             candidatescore = evaluatesplit(ftr, splitval, n, data)

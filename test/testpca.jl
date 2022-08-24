@@ -95,6 +95,10 @@ end
     A = [1 1 ; 3 1 ; 0 0 ]
     test_svdproperties(A)
     test_svdproperties(A')
+    A = [1 2; 2 4;1 2]
+    test_svdproperties(A)
+    U, Σ, V = SVD(A)
+    @test vecand(Σ - [√30 0; 0 0; 0 0] .- eps .< [ 0 0 ; 0 0; 0 0])
 end
 
 @testset "PCA()" begin

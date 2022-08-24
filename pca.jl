@@ -93,6 +93,7 @@ function eig_vals(A, iters=1000)
     return A[diagind(A)]
 end
 
+# TODO Add shift
 function IPM(A, μ, iters, shift=1e-7)
     D = size(A)[2]
     b = rand(D)

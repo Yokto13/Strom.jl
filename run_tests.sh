@@ -3,3 +3,4 @@ julia ./test/testregnode.jl
 julia ./test/testtree.jl
 julia ./test/testrandomforest.jl
 julia ./test/testpca.jl
+julia ./test/testboostnode.jl

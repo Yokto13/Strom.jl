@@ -1,4 +1,5 @@
-include("node.jl")
+include("clsnode.jl")
+include("regnode.jl")
 
 mutable struct RandomForest 
     data

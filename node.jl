@@ -20,7 +20,6 @@ Calculates prediction and sets it to `n.pred`.
 """
 function setprediction!(n, data)
     pred = calcprediction(n, data)
-    pred /= length(n.datainds)
     n.pred = pred
 end
 

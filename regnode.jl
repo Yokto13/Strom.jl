@@ -32,7 +32,7 @@ function calcprediction(n::RegNode, data)
         i = n.datainds[j]
         pred += data[i].y
     end
-    return pred 
+    return pred / length(n.datainds)
 end
 
 """

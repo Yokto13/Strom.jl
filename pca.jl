@@ -93,7 +93,6 @@ function eig_vals(A, iters=1000)
     return A[diagind(A)]
 end
 
-# TODO Add shift
 function IPM(A, μ, iters, shift=1e-7)
     D = size(A)[2]
     b = rand(D)
@@ -111,9 +110,14 @@ function eig_vectors(A, λs, iters=10000)
     vectors = Dict()
     for λ=λs
         if λ in keys(vectors)
-            M = zeros(length(vectors[λ][1]), length(vectors[λ]))
+            M = zeros(length(vectors[λ][1]), length(vectors[λ]) + size(A)[1])
             for i=1:length(vectors[λ])
                 M[:, i] = vectors[λ][i]
+            end
+            diff = A - λ * I(size(A)[1])
+            diff = diff'
+            for i=length(vectors[λ]) + 1:length(vectors[λ]) + size(A)[1]
+                M[:, i] = diff[:, i - length(vectors[λ])]
             end
             M = M'
             U = gauss_jordan(M)
@@ -129,6 +133,8 @@ function eig_vectors(A, λs, iters=10000)
     for λ in λs
         if λ in used_λs && continue; end
         for v in vectors[λ]
+            println("1 ", norm(v))
+            println(v)
             push!(out, v)
         end
         push!(used_λs, λ)
@@ -170,7 +176,7 @@ function SVD(A, eps=1e-7)
     sort!(λs, rev=true)
     σs = sqrt.(λs)
     σs = [σ for σ in σs if abs(σ) >= eps]
-    V = eig_vectors(M, λs)[1:end .<= n, 1:end .<= n]
+    V = eig_vectors(M, λs)
     println("VVV  ", V)
     U = get_2nd_base(A, σs, V)
     Σ = zeros(m, n)

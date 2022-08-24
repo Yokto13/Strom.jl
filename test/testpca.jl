@@ -67,13 +67,13 @@ function test_svdproperties(A)
         @test Σ[i, i] + eps >= 0
     end
     @test σs == sort(σs, rev=true)
-    @test abs(norm(V'[:, 1]) - 1) < eps
-    if size(V)[2] > 1
-        @test abs(V'[:, 1]' * V'[:, 2]) < eps
+    @test abs(norm(V[:, 1]) - 1) < eps
+    for i=2:size(V)[2]
+        @test abs(V[:, i - 1]' * V[:, i]) < eps
     end
     @test abs(norm(U[:, 1]) - 1) < eps
-    if size(U)[2] > 1
-        @test abs(U[:, 1]' * U[:, 2]) < eps
+    for i=2:size(U)[2]
+        @test abs(U[:, i - 1]' * U[:, i]) < eps
     end
     @test abs((U * Σ * V)[1] - A[1]) < eps 
 end

@@ -3,11 +3,12 @@ using DataFrames
 
 include("utils.jl")
 include("node.jl")
+include("boostforest.jl")
+include("regboostnode.jl")
 
 dataset = BostonHousing()
 
 data = []
-
 for i=1:506
     row = Array(dataset.dataframe[i, :])
     push!(data, Dato(row[1:13], row[14]))
@@ -24,6 +25,14 @@ rt3 = RegTree(train, 20, 10000); buildtree!(rt3)
 println("Tree 3 built. ",rt3.minnode)
 rt4 = RegTree(train, 100, 10000); buildtree!(rt4)
 println("Tree 4 built. ",rt4.minnode)
+
+bs = []
+for i=1:8
+    push!(bs, BoostForest(Data(train, 1), 2 ^ i, RegBoostNode()))
+    buildforest!(bs[i])
+    println("Boost ", i,  " loss on train ", MSE_all(Data(train, 1), bs[i]))
+    println("Boost ", i, " loss on test ", MSE_all(Data(test, 1), bs[i]))
+end
 
 println("Tree 1 loss on train ", MSE_all(train, rt1))
 println("Tree 1 loss on test ", MSE_all(test, rt1))

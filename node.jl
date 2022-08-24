@@ -9,8 +9,8 @@ Calculate error for left and right and get its sum.
 
 Used to score how good a certain node split is.
 """
-function evaluate(left::Node, right::Node, data)
-    return evaluate(left, data) + evaluate(right, data)
+function evaluate(left::Node, right::Node, tree)
+    return evaluate(left, tree) + evaluate(right, tree)
 end
 
 """
@@ -18,8 +18,8 @@ end
 
 Calculates prediction and sets it to `n.pred`.
 """
-function setprediction!(n, data)
-    pred = calcprediction(n, data)
+function setprediction!(n, tree)
+    pred = calcprediction(n, tree)
     n.pred = pred
 end
 

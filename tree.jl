@@ -12,21 +12,31 @@ mutable struct Tree
     minnode
     maxdepth
     ftrsubset
+    # G, H are for boosting, shouldn't be set manually
+    G::Union{Vector, Nothing}
+    H::Union{Vector, Nothing}
 end
 
-RegTree(data) = Tree(data, RegNode(), 1, nothing, 1.0)
-RegTree(data, minnode, maxdepth) = Tree(data, RegNode(), minnode, maxdepth, 1.0)
-RegTree(data, ftrsubset) = Tree(data, RegNode(), 1, nothing, ftrsubset)
+RegTree(data) = Tree(data, RegNode(), 1, nothing, 1.0, nothing, nothing)
+RegTree(data, minnode, maxdepth) = Tree(data, RegNode(), minnode, maxdepth, 1.0,
+                                       nothing, nothing)
+RegTree(data, ftrsubset) = Tree(data, RegNode(), 1, nothing, ftrsubset,
+                                nothing, nothing)
 RegTree(data, minnode, maxdepth, ftrsubset) = Tree(data, RegNode(), minnode, 
-                                                   maxdepth, ftrsubset)
+                                                   maxdepth, ftrsubset, nothing,
+                                                  nothing)
 
-ClsTree(data) = Tree(data, GiniNode(), 1, nothing, 1.0)
-ClsTree(data, minnode, maxdepth) = Tree(data, GiniNode(), minnode, maxdepth, 1.0)
-ClsTree(data, ftrsubset) = Tree(data, GiniNode(), 1, nothing, ftrsubset)
+ClsTree(data) = Tree(data, GiniNode(), 1, nothing, 1.0, nothing, nothing)
+ClsTree(data, minnode, maxdepth) = Tree(data, GiniNode(), minnode, maxdepth, 1.0,
+                                       nothing, nothing)
+ClsTree(data, ftrsubset) = Tree(data, GiniNode(), 1, nothing, ftrsubset, nothing,
+                               nothing)
 ClsTree(data, minnode, maxdepth, ftrsubset) = Tree(data, GiniNode(), minnode, 
-                                                   maxdepth, ftrsubset)
+                                                   maxdepth, ftrsubset,
+                                                  nothing, nothing)
 
-Tree(data, root, minnode, maxdepth) = Tree(data, root, minnode, maxdepth, 1.0)
+Tree(data, root, minnode, maxdepth) = Tree(data, root, minnode, maxdepth, 1.0,
+                                          nothing, nothing)
 
 """
     stopdividing(n[, cond])
@@ -82,20 +92,21 @@ function splitnode(ftr, val, n::Node, data)
             push!(right.datainds, n.datainds[j])
         end
     end
+    @assert length(right.datainds) != 0
+    @assert length(left.datainds) != 0
     return (left, right)
 end
 
 """
-    evaluatesplit(ftr, val, n, data)
+    evaluatesplit(ftr, val, n, tree)
 """
-function evaluatesplit(ftr::Int64, val::Float64, n::Node, data)
-    left, right = splitnode(ftr, val, n, data)
-    setprediction!(left, data)
-    setprediction!(right, data)
-    # Subtracting is 'correct' way of calculating criterium, but won't make 
-    # difference in this case.
-    return evaluate(left, right, data) - evaluate(n, data)
-    # return evaluate(left, right, data)
+function evaluatesplit(ftr::Int64, val::Float64, n::Node, tree)
+    left, right = splitnode(ftr, val, n, tree.data)
+    setprediction!(left, tree)
+    setprediction!(right, tree)
+    # return - evaluate(left, right, tree) + evaluate(n, tree)
+    return evaluate(left, right, tree) - evaluate(n, tree)
+    # return evaluate(left, right, tree)
 end
 
 """
@@ -136,7 +147,7 @@ function skipftr(ftrsubset)
 end
 
 """
-    findsplit!(n, data, ftrsubset, splitval_cnt)
+    findsplit!(n, tree, ftrsubset, tree[,splitval_cnt])
 
 Find the best feature and its val for the given `node`.
 
@@ -147,17 +158,26 @@ Find the best feature and its val for the given `node`.
     the tree from learning.
 - `ftrsubset`: the franction of features to split on. For single tree
     you probably want 1.0. For forests this is a hyperparameter to be tuned.
-    √ of the number of features is usally a good idea, remember it need a fraction.
+    √ of the number of features is usally a good idea, remember it needs fraction.
 """
-function findsplit!(n::Node, data, ftrsubset, splitval_cnt::Integer=5)
-    setprediction!(n, data)
-    bestscore = evaluate(n, data)
+function findsplit!(n::Node, tree, ftrsubset, splitval_cnt::Integer=5)
+    setprediction!(n, tree)
+    bestscore = Inf
+    #printl("bestscore ", bestscore)
     bestftr, bestval = -1, 0.0
-    for ftr = 1:length(data[1])
+    for ftr = 1:length(tree.data[1])
         if skipftr(ftrsubset) && continue end
-        mi, ma = getextremas(ftr, n, data)
-        for splitval = uniform(mi, ma, splitval_cnt)
-            candidatescore = evaluatesplit(ftr, splitval, n, data)
+        mi, ma = getextremas(ftr, n, tree.data)
+        # for splitval = uniform(mi, ma, splitval_cnt)
+        sorted = sort([tree.data[i] for i in n.datainds], by=x -> x[ftr])
+        for i = 2:length(sorted) 
+            if sorted[i][ftr] == sorted[i - 1][ftr] && continue end
+            splitval = (sorted[i][ftr] + sorted[i - 1][ftr]) / 2
+            #println(ftr)
+            #println(splitval)
+            #println(sorted)
+            candidatescore = evaluatesplit(ftr, splitval, n, tree)
+            #println("candidatescore ", candidatescore)
             if candidatescore < bestscore
                 bestscore = candidatescore
                 bestftr = ftr
@@ -167,6 +187,7 @@ function findsplit!(n::Node, data, ftrsubset, splitval_cnt::Integer=5)
     end
     n.ftr = bestftr
     n.splitval = bestval
+    #println(bestftr, " ", bestval)
 end
 
 """
@@ -185,9 +206,9 @@ function build!(parent::Node, tree)
     data = tree.data
     if stopdividing(parent, tree)
         parent.isleaf = true
-        setprediction!(parent, data)
+        setprediction!(parent, tree)
     else
-        findsplit!(parent, data, tree.ftrsubset)
+        findsplit!(parent, tree, tree.ftrsubset)
         if parent.ftr != -1
             parent.left, parent.right = splitnode(parent.ftr, parent.splitval, 
                                                 parent, data)
@@ -199,6 +220,7 @@ function build!(parent::Node, tree)
             # I don't know if this is still happening after the last rework
             # of criteria. TODO check this.
             parent.isleaf = true
+            setprediction!(parent, tree)
         end
     end
 end

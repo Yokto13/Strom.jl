@@ -33,7 +33,8 @@ EntropyNode(v::Vector{Int64}) = EntropyNode(false, [], v, -1, -1, nothing,
                                             nothing, 1, 1)
 EntropyNode() = EntropyNode(false, [], [], -1, -1, nothing, nothing, 1, 1)
 
-function calcprediction(n::ClsNode, data)
+function calcprediction(n::ClsNode, tree)
+    data = tree.data
     pred = zeros(data.classcnt)
     sz = length(n.datainds)
     for j = 1:sz
@@ -44,16 +45,16 @@ function calcprediction(n::ClsNode, data)
 end
 
 """
-    evaluate(n, data)
+    evaluate(n, tree)
 
 Evaluate node.
 """
-function evaluate(n::GiniNode, data)
-    return gini(n, data)
+function evaluate(n::GiniNode, tree)
+    return gini(n, tree.data)
 end
 
-function evaluate(n::EntropyNode, data)
-    return entropy(n, data)
+function evaluate(n::EntropyNode, tree)
+    return entropy(n, tree.data)
 end
 
 """

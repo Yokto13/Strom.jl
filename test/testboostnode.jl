@@ -1,5 +1,6 @@
 include("../boostnode.jl")
 include("../regboostnode.jl")
+include("../tree.jl")
 
 using Test
 
@@ -12,14 +13,14 @@ function test_criterion(f::Function)
     n = RegBoostNode()
     @test isnan(f(n, G, H))
     n = RegBoostNode([1])
-    @test f(n, G, H) == 1
+    @test f(n, G, H) == -0.5
     n = RegBoostNode([1, 2])
     @test f(n, G, H) == 0
     n = RegBoostNode([1], 1)
-    @test f(n, G, H) == 0.5
+    @test f(n, G, H) == -0.25
     G = [10]
     n = RegBoostNode([1], 1)
-    @test f(n, G, H) == 50
+    @test f(n, G, H) == -25
 end
 
 @testset "similarity()" begin
@@ -27,5 +28,6 @@ end
 end
 
 @testset "evaluate()" begin
-    test_criterion(evaluate)
+    evaluate2(n, G, H) = evaluate(n, Tree([], RegBoostNode(),1, 1, G, H))
+    test_criterion(evaluate2)
 end

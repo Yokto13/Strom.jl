@@ -1,4 +1,5 @@
 include("node.jl")
+include("abstracttree.jl")
 
 abstract type ClsNode <: Node end
 
@@ -33,8 +34,12 @@ EntropyNode(v::Vector{Int64}) = EntropyNode(false, [], v, -1, -1, nothing,
                                             nothing, 1, 1)
 EntropyNode() = EntropyNode(false, [], [], -1, -1, nothing, nothing, 1, 1)
 
-function calcprediction(n::ClsNode, tree)
+function calcprediction(n::ClsNode, tree::AbstractTree)
     data = tree.data
+    return calcprediction(n, data)
+end
+
+function calcprediction(n::ClsNode, data)
     pred = zeros(data.classcnt)
     sz = length(n.datainds)
     for j = 1:sz

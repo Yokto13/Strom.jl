@@ -1,4 +1,5 @@
 include("node.jl")
+include("abstracttree.jl")
 
 mutable struct RegNode <: Node
     isleaf::Bool
@@ -25,8 +26,7 @@ and should **not** be exposed to the outside.
 For predictions to be sensible, 
 followup actions ought to be done in setprediction!.
 """
-function calcprediction(n::RegNode, tree)
-    data = tree.data
+function calcprediction(n::RegNode, data)
     pred::Float64 = 0.0
     sz = length(n.datainds)
     for j = 1:sz
@@ -34,6 +34,11 @@ function calcprediction(n::RegNode, tree)
         pred += data[i].y
     end
     return pred / length(n.datainds)
+end
+
+function calcprediction(n::RegNode, tree::AbstractTree)
+    data = tree.data
+    calcprediction(n, data)
 end
 
 """

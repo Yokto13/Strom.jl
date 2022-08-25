@@ -14,12 +14,17 @@ function evaluate(left::Node, right::Node, tree)
 end
 
 """
-    setprediction!(n, data)
+    setprediction!(n, dataobject)
 
 Calculates prediction and sets it to `n.pred`.
+# Arguments
+- `n`: node to wchich the prediction will be set.
+- `dataobject`: tree, Data, array.
+Something holding the training data.
+`Tree` is passed here usually if we are dealing with boosting.
 """
-function setprediction!(n, tree)
-    pred = calcprediction(n, tree)
+function setprediction!(n, dataobject)
+    pred = calcprediction(n, dataobject)
     n.pred = pred
 end
 

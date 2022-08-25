@@ -10,7 +10,7 @@ Common algorithms for decision trees.
 - [X] Random forests
 - [ ] Visualisation of results
 - [X] GBDT regression
-- [X] GBDT classification
+- [ ] GBDT classification (wip, bugs in current implementation)
 - [X] PCA
 - [X] SVD
 - [X] Gauss-Jordan
@@ -20,10 +20,8 @@ Common algorithms for decision trees.
 ### For what you can use this library?
 This project was written for pracitce and from curiosity and I wouldn't recommend
 using it in real applications.
-Most parts of it were extensively tested and should be working fine. 
-However, I wrote it without emphasizing speed and also with very 
-little knowledge of Julia, thus the code
-doesn't use the language as would be appropriate.
+It lacks focus on speed and constructs of Julia language (this is literally the
+first code I've ever written in Julia).
 
 Nonetheless, you can use it to learn about implementations of the listed
 algorithms.
@@ -45,4 +43,3 @@ The boosted trees were written with the following
 [paper](https://arxiv.org/abs/1603.02754) in mind.
 However, they don't use some optimization tricks and the heruistic
 for picking the best split might differ.
-

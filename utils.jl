@@ -115,3 +115,7 @@ function uniform(mi, ma, cnt)
     return out
 end
 
+function softmax(v)
+    ma = maximum(v)
+    exp.(v .- ma) / sum(exp.(v .- ma))
+end

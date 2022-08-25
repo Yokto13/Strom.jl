@@ -1,5 +1,6 @@
 include("../node.jl")
 include("../utils.jl")
+include("../tree.jl")
 
 using Test
 
@@ -13,3 +14,12 @@ eps = 1e-7
     @test ma <= 10
 end
 
+@testset "softmax()" begin
+    for i=1:5
+        v = rand(100 * i)
+        @test sum(softmax(v)) ≈ 1.0
+    end
+    o = softmax([0, 0, 1])
+    @test o[1] == o[2]
+    @test o[3] > o[2]
+end

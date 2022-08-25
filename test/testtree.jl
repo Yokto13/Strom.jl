@@ -51,7 +51,8 @@ end
 @testset "findsplit!()" begin
     data = [Dato([1], 1), Dato([1.1],1), Dato([2], 3)]
     n = RegNode([1, 2, 3])
-    findsplit!(n, data, 1000)
+    t = ClsTree(data)
+    findsplit!(n, t, 1)
     println("The best splitval is ", n.splitval)
     @test n.ftr == 1
     @test n.splitval > 1.1

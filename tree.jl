@@ -5,8 +5,9 @@ Random.seed!(rng_seed)
 
 include("regnode.jl")
 include("clsnode.jl")
+include("abstracttree.jl")
 
-mutable struct Tree
+mutable struct Tree <: AbstractTree
     data
     root::Node
     minnode
@@ -37,6 +38,9 @@ ClsTree(data, minnode, maxdepth, ftrsubset) = Tree(data, GiniNode(), minnode,
 
 Tree(data, root, minnode, maxdepth) = Tree(data, root, minnode, maxdepth, 1.0,
                                           nothing, nothing)
+
+Tree(data, root, minnode, maxdepth, G, H) = Tree(data, root, minnode, maxdepth, 1.0,
+                                          G, H)
 
 """
     stopdividing(n[, cond])
@@ -147,20 +151,16 @@ function skipftr(ftrsubset)
 end
 
 """
-    findsplit!(n, tree, ftrsubset, tree[,splitval_cnt])
+    findsplit!(n, tree, ftrsubset)
 
 Find the best feature and its val for the given `node`.
 
 # Arguments
-- `splitval_cnt`: if unspecified, value of 5 is used.
-    `splitval_cnt` has an influence on the quality of the tree.
-    Lower values fight againts overfitting, but too small ones prevent
-    the tree from learning.
 - `ftrsubset`: the franction of features to split on. For single tree
     you probably want 1.0. For forests this is a hyperparameter to be tuned.
     √ of the number of features is usally a good idea, remember it needs fraction.
 """
-function findsplit!(n::Node, tree, ftrsubset, splitval_cnt::Integer=5)
+function findsplit!(n::Node, tree, ftrsubset=1.0)
     setprediction!(n, tree)
     bestscore = Inf
     #printl("bestscore ", bestscore)

@@ -1,6 +1,7 @@
 using Random
 
 include("node.jl")
+include("utils.jl")
 include("tree.jl")
 
 mutable struct BoostForest
@@ -22,12 +23,19 @@ end
 
 getindex(f::BoostedForest, inds) = (f.trees[inds])
 
-BoostForest(data, treecnt, node) = BoostForest(data, [], treecnt, 
-                                                     node, 1, 1000, true, 
-                                                     x -> x,
-                                                     x -> x,
-                                                     [], [], 0
-                                                    )
+BoostForest(data, treecnt, node) = BoostForest(data, 
+                                               [], 
+                                               treecnt,      
+                                               node, 
+                                               1, 
+                                               1000, 
+                                               true,       
+                                               x -> x,
+                                               x -> x,
+                                               [], 
+                                               [], 
+                                               0
+                                              )
 
 BoostForest(data, treecnt, node, minnode=1, maxdepth=10,) = 
 BoostForest(data, 
@@ -39,8 +47,10 @@ BoostForest(data,
              true,
              x -> x,
              x -> x,
-             [], [], 0
-           )
+             [], 
+             [], 
+             0
+            )
 
 function updateG!(forest::BoostForest)
     preds = predictall(forest.data, forest)

@@ -20,9 +20,6 @@ size(d::Dato) = (size(d.x))
 length(d::Dato) = (length(d.x))
 getindex(d::Dato, i::Integer) = (d.x[i])
 
-println([1,2,3])
-println(typeof([1,2,3]))
-println(mean([1,2,3], 3))
 
 mutable struct Data <: AbstractArray{Dato, 1}
     data::Vector{Dato}
@@ -115,7 +112,13 @@ function uniform(mi, ma, cnt)
     return out
 end
 
-function softmax(v)
-    ma = maximum(v)
-    exp.(v .- ma) / sum(exp.(v .- ma))
+function softmax(m)
+    lastdim = length(size(m))
+    ma = maximum(m, dims=lastdim)
+    exped = exp.(m .- ma)
+    println("????????")
+    println(exped)
+    println(m)
+    println(sum(exped, dims=lastdim))
+    exped / sum(exped, dims=lastdim)
 end

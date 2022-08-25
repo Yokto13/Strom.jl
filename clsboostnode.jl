@@ -13,10 +13,51 @@ mutable struct ClsBoostNode <: BoostNode
     λ::Numeric64
 end
 
-ClsBoostNode(v::Vector{Int64}) = ClsBoostNode(false, -1, v, -1, -1, nothing,
-                                              nothing, 1, 1, 0)
-ClsBoostNode() = RegBoostNode(false, -1, [], -1, -1, nothing, nothing, 1, 1, 0,)
-ClsBoostNode(v::Vector{Int64}, λ) = ClsBoostNode(false, -1, v, -1, -1, nothing,
-                                                 nothing, 1, 1, λ)
-ClsBoostNode(λ) = ClsBoostNode(false, -1, [], -1, -1, nothing, nothing, 1, 1, λ)
+ClsBoostNode(v::Vector{Int64}) = ClsBoostNode(false, 
+                                              0,
+                                              v,
+                                              -1,
+                                              -1,
+                                              nothing,
+                                              nothing,
+                                              1,
+                                              1,
+                                              0
+                                             )
+
+ClsBoostNode() = ClsBoostNode(false,
+                              0,
+                              [],
+                              -1,
+                              -1,
+                              nothing,
+                              nothing,
+                              1,
+                              1,
+                              0
+                             )
+
+ClsBoostNode(v::Vector{Int64}, λ) = ClsBoostNode(false,
+                                                 0,
+                                                 v,
+                                                 -1,
+                                                 -1,
+                                                 nothing,
+                                                 nothing, 
+                                                 1, 
+                                                 1, 
+                                                 λ
+                                                )
+
+ClsBoostNode(λ) = ClsBoostNode(false,
+                               0,
+                               [], 
+                               -1,
+                               -1,
+                               nothing,
+                               nothing,
+                               1,
+                               1,
+                               λ
+                              )
 

@@ -3,10 +3,12 @@ using Random
 include("node.jl")
 include("utils.jl")
 include("tree.jl")
+include("regboostnode.jl")
+include("clsboostnode.jl")
 
 mutable struct BoostForest
     data
-    trees::Vector
+    trees::Union{Vector, Vector{Vector}}
     treecnt::Integer
     node 
     minnode::Integer
@@ -16,12 +18,14 @@ mutable struct BoostForest
     datasetsubset::Function
     G::Vector
     H::Vector
-    logits::Vector
-    probs::Vector{Vector}
+    logits::Matrix
+    probs::Matrix
     treestrained::Integer
+    α::Float64
 end
 
-getindex(f::BoostedForest, inds) = (f.trees[inds])
+getindex(f::BoostForest, i::Integer) = (f.trees[i])
+getindex(f::BoostForest, i::Integer, j::Integer) = (f.trees[i, j])
 
 BoostForest(data, treecnt, node) = BoostForest(data, 
                                                [], 
@@ -34,7 +38,10 @@ BoostForest(data, treecnt, node) = BoostForest(data,
                                                x -> x,
                                                [], 
                                                [], 
-                                               0
+                                               reshape([],0,1),
+                                               reshape([],0,1),
+                                               0,
+                                               0.1
                                               )
 
 BoostForest(data, treecnt, node, minnode=1, maxdepth=10,) = 
@@ -49,13 +56,22 @@ BoostForest(data,
              x -> x,
              [], 
              [], 
-             0
+             reshape([],0,1),
+             reshape([],0,1),
+             0,
+             0.1
             )
 
-function updateG!(forest::BoostForest)
+function updateG!(forest::BoostForest, c=nothing)
     preds = predictall(forest.data, forest)
     data = forest.data
-    forest.G = [preds[i] - forest.data[i].y for i=1:length(forest.data)]
+    if typeof(forest.node) == RegBoostNode
+        forest.G = [preds[i] - forest.data[i].y for i=1:length(forest.data)]
+    end
+    if typeof(forest.node) == ClsBoostNode
+        targets = [d.y for d in forest.data]
+        forest.G = forest.probs[:, c] - (targets .== c)
+    end
 end
 
 function updateH!(forest::BoostForest, c=nothing)
@@ -63,6 +79,7 @@ function updateH!(forest::BoostForest, c=nothing)
         forest.H = ones(length(forest.data))
     end
     if typeof(forest.node) === ClsBoostNode
+        forest.probs[:, c] = softmax(forest.logits[:, c])
         forest.H = forest.probs[:, c] .* (1 .- forest.probs[:, c])
     end
 end
@@ -73,14 +90,18 @@ end
 Get prediction for the given `datapoint`.
 """
 function predict(datapoint, forest::BoostForest)
-    pred = 0.0
-    if forest.treestrained == 0
-        return pred
-    end
+    pred = 0 
     for i=1:forest.treestrained
         p = predict(datapoint, forest.trees[i])
-        # println(p)
-        pred += p * 0.5
+        pred = pred .+ forest.α * p
+    end
+    return pred
+end
+
+function predict(datapoint, timestamp::Vector)
+    pred = zeros(length(timestamp))
+    for c=1:length(timestamp)
+        pred[c] = predict(datapoint, timestamp[c])
     end
     return pred
 end
@@ -108,8 +129,6 @@ You can also instantied them by yourself then set `inittrees` false
 and `forest.trees` and `forest.treecnt` accordingly.
 """
 function buildforest!(forest::BoostForest, inittrees::Bool=true)
-    updateH!(forest)
-    updateG!(forest)
     if inittrees
         createtrees!(forest)
     end
@@ -118,6 +137,8 @@ function buildforest!(forest::BoostForest, inittrees::Bool=true)
 end
 
 function buildtrees!(forest::BoostForest, node::RegBoostNode)
+    updateH!(forest)
+    updateG!(forest)
     for tree=forest.trees
         tree.G = forest.G
         tree.H = forest.H
@@ -128,17 +149,26 @@ function buildtrees!(forest::BoostForest, node::RegBoostNode)
     end
 end
 
-function buildtrees!(forest::BoostForest, node::ClsBoostNode)
+function initpreds!(forest::BoostForest)
+    forest.probs = zeros(length(forest.data), forest.data.classcnt)
     forest.logits = zeros(length(forest.data), forest.data.classcnt)
+end
+
+function buildtrees!(forest::BoostForest, node::ClsBoostNode)
+    initpreds!(forest)
     for timestamp=1:forest.treecnt
         for c=1:forest.data.classcnt
-            forest[timestamp, c].G = forest.G
-            forest[timestamp, c].H = forest.H
-            buildtree!(forest[timestamp, c])
             updateH!(forest, c)
-            updateG!(forest)
-            preds = predictall(forest[timestamp, c], data)
-            preds = sum(preds, 1)
+            updateG!(forest, c)
+            forest[timestamp][c].G = forest.G
+            forest[timestamp][c].H = forest.H
+            buildtree!(forest[timestamp][c])
+            updateH!(forest, c)
+            updateG!(forest, c)
+            preds = predictall(forest.data, forest[timestamp][c])
+            # println(preds)
+            # println(forest.logits[:, c])
+            # preds = sum(preds, 1)
             forest.logits[:, c] += preds
         end
         forest.treestrained += 1
@@ -154,16 +184,29 @@ Uses params specified in the `forest`.
 """
 function createtrees!(forest::BoostForest)
     forest.trees = []
-    # datasetsize = forest.datasetsubset(length(forest.data))
     for i=1:forest.treecnt
-        # This is sooooo inefficient
-        # TODO solve deep copy thing
-        # TODO some profiling
-        treedata = Data(deepcopy(forest.data.data), forest.data.classcnt)
-        # shuffle!(treedata.data)
-        treedata.data = treedata
-        t = Tree(treedata, deepcopy(forest.node), forest.minnode,
-                 forest.maxdepth)
-        push!(forest.trees, t)
+        push!(forest.trees, createtimestamp(forest, forest.node))
     end
+end
+
+function createtimestamp(forest::BoostForest, node::RegBoostNode)
+    data = forest.data
+    treedata = Data(deepcopy(data.data), data.classcnt)
+    treedata.data = treedata
+    t = Tree(treedata, deepcopy(node), forest.minnode,
+             forest.maxdepth)
+    return t
+end
+
+function createtimestamp(forest::BoostForest, node::ClsBoostNode)
+    timestamp = []
+    data = forest.data
+    for i=1:data.classcnt
+        treedata = Data(deepcopy(data.data), data.classcnt)
+        treedata.data = treedata
+        t = Tree(treedata, deepcopy(node), forest.minnode,
+             forest.maxdepth)
+        push!(timestamp, t)
+    end
+    return timestamp
 end

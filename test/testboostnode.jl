@@ -1,5 +1,6 @@
 include("../boostnode.jl")
 include("../regboostnode.jl")
+include("../clsboostnode.jl")
 include("../tree.jl")
 
 using Test
@@ -20,6 +21,8 @@ function test_criterion(f::Function)
     @test f(n, G, H) == -0.25
     G = [10]
     n = RegBoostNode([1], 1)
+    @test f(n, G, H) == -25
+    n = ClsBoostNode([1], 1)
     @test f(n, G, H) == -25
 end
 

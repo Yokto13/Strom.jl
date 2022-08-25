@@ -21,7 +21,7 @@ Calculates prediction and sets it to `n.pred`.
 - `n`: node to wchich the prediction will be set.
 - `dataobject`: tree, Data, array.
 Something holding the training data.
-`Tree` is passed here usually if we are dealing with boosting.
+`Tree` is passed here usually only if we are dealing with boosting.
 """
 function setprediction!(n, dataobject)
     pred = calcprediction(n, dataobject)

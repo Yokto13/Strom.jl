@@ -133,8 +133,6 @@ function eig_vectors(A, λs, iters=10000)
     for λ in λs
         if λ in used_λs && continue; end
         for v in vectors[λ]
-            println("1 ", norm(v))
-            println(v)
             push!(out, v)
         end
         push!(used_λs, λ)
@@ -144,24 +142,14 @@ end
 
 function get_2nd_base(A, σs, vs, eps=1e-7)
     result = zeros(size(A)[1], size(A)[1])
-    println(σs)
-    println(size(result))
     for i=1:length(σs)
         start = 1 + (i - 1) * size(A)[1]
         if abs(σs[i]) >= eps
-            #println("haha ",  A * vs[i] / σs[i])
-            #println(result)
             result[start:start + size(A)[1] - 1] = A * vs[i] / σs[i]
-            #println(result)
         else
-            #println("?????")
             U = gauss_jordan(copy(result'))
-            #println(result')
-            #println(U)
             perp = read_solution(U)
             perp /= norm(perp)
-            #println("perp ", perp)
-            #println(result)
             result[start:start + size(A)[1] - 1] = perp
         end
     end
@@ -177,7 +165,6 @@ function SVD(A, eps=1e-7)
     σs = sqrt.(λs)
     σs = [σ for σ in σs if abs(σ) >= eps]
     V = eig_vectors(M, λs)
-    println("VVV  ", V)
     U = get_2nd_base(A, σs, V)
     Σ = zeros(m, n)
     for i=1:length(σs)
@@ -218,6 +205,5 @@ function PCA(A, precomputed=nothing, dims=nothing)
     if isnothing(precomputed)
         precomputed = compute_PCA(A, dims)
     end
-    println(precomputed)
     return A * precomputed
 end

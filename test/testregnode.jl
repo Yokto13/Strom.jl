@@ -1,4 +1,4 @@
-include("../regnode.jl")
+include("../src/regnode.jl")
 
 using Test
 

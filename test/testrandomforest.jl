@@ -1,6 +1,6 @@
-include("../node.jl")
-include("../utils.jl")
-include("../randomforest.jl")
+include("../src/node.jl")
+include("../src/utils.jl")
+include("../src/randomforest.jl")
 
 using Test
 

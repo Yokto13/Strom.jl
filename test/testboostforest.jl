@@ -1,8 +1,8 @@
-include("../node.jl")
-include("../utils.jl")
-include("../boostforest.jl")
-include("../regboostnode.jl")
-include("../clsboostnode.jl")
+include("../src/node.jl")
+include("../src/utils.jl")
+include("../src/boostforest.jl")
+include("../src/regboostnode.jl")
+include("../src/clsboostnode.jl")
 
 using Test
 

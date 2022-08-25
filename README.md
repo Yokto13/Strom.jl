@@ -1,4 +1,4 @@
-# strom.jl
+# Strom.jl
 
 ## About
 
@@ -9,8 +9,8 @@ Common algorithms for decision trees.
 - [X] Classification tree (Gini or entropy criterion)
 - [X] Random forests
 - [ ] Visualisation of results
-- [ ] GBDT regression
-- [ ] GBDT classification
+- [X] GBDT regression
+- [X] GBDT classification
 - [X] PCA
 - [X] SVD
 - [X] Gauss-Jordan

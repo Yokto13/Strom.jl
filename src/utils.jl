@@ -1,9 +1,7 @@
 import Base: size, getindex, length, iterate, setindex!
 
-Numeric64 = Union{Float64, Int64}
-
-function mean(v::Vector{<:Numeric64}, sz::Int64)
-    out::Float64 = 0.0
+function mean(v::Vector{<:Number}, sz::Integer)
+    out = 0.0
     for i = 1:sz
         out += v[i]
     end
@@ -12,7 +10,7 @@ function mean(v::Vector{<:Numeric64}, sz::Int64)
 end
 
 struct Dato
-    x::Vector{Numeric64}
+    x::Vector{Number}
     y
 end
 
@@ -30,7 +28,6 @@ size(d::Data) = (size(d.data))
 length(d::Data) = (length(d.data))
 getindex(d::Data, i::Integer) = (d.data[i])
 setindex!(d::Data, v, i::Int) = (d.data[i] = v)
-# setindex!(d::Data, v, I::Vararg{Int, 1}) = (d.data[I] = v)
 IndexStyle(::Data) = (IndexLinear())
 
 function iterate(d::Data)
@@ -112,13 +109,14 @@ function uniform(mi, ma, cnt)
     return out
 end
 
+"""
+    softmax(m)
+
+Standard stable softmax applied on the last dim of `m`.
+"""
 function softmax(m)
     lastdim = length(size(m))
     ma = maximum(m, dims=lastdim)
     exped = exp.(m .- ma)
-    println("????????")
-    println(exped)
-    println(m)
-    println(sum(exped, dims=lastdim))
     exped / sum(exped, dims=lastdim)
 end

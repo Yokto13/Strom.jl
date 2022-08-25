@@ -8,7 +8,7 @@ abstract type BoostNode <: Node end
 Evaluate node.
 """
 function evaluate(n::BoostNode, tree)
-    return similarity(n, tree.G, tree.H)
+    return similarity(n, tree.G, tree.H, tree.λ)
 end
 
 function derivativevals(n::BoostNode, G, H)
@@ -24,13 +24,13 @@ end
 """
     similarity(BoostNode, H, G)
 """
-function similarity(n::BoostNode, G, H)
+function similarity(n::BoostNode, G, H, λ=0)
     Gs, Hs = derivativevals(n, G, H)
-    return - 0.5 * Gs ^ 2 / (Hs + n.λ)
+    return - 0.5 * Gs ^ 2 / (Hs + λ)
 end
 
 function calcprediction(n, tree)
     G, H = tree.G, tree.H
     Gs, Hs = derivativevals(n, G, H)
-    return - Gs / (Hs + n.λ)
+    return - Gs / (Hs + tree.λ)
 end

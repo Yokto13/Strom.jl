@@ -13,34 +13,40 @@ mutable struct Tree <: AbstractTree
     minnode
     maxdepth
     ftrsubset
-    # G, H are for boosting, shouldn't be set manually
+    # G, H, λ are for boosting, shouldn't be set manually
     G::Union{Vector, Nothing}
     H::Union{Vector, Nothing}
+    λ::Union{Number, Nothing}
 end
 
-RegTree(data) = Tree(data, RegNode(), 1, nothing, 1.0, nothing, nothing)
+RegTree(data) = Tree(data, RegNode(), 1, nothing, 1.0, nothing, nothing, nothing)
 RegTree(data, minnode, maxdepth) = Tree(data, RegNode(), minnode, maxdepth, 1.0,
-                                       nothing, nothing)
+                                       nothing, nothing, nothing)
 RegTree(data, ftrsubset) = Tree(data, RegNode(), 1, nothing, ftrsubset,
-                                nothing, nothing)
+                                nothing, nothing, nothing)
 RegTree(data, minnode, maxdepth, ftrsubset) = Tree(data, RegNode(), minnode, 
                                                    maxdepth, ftrsubset, nothing,
-                                                  nothing)
-
-ClsTree(data) = Tree(data, GiniNode(), 1, nothing, 1.0, nothing, nothing)
-ClsTree(data, minnode, maxdepth) = Tree(data, GiniNode(), minnode, maxdepth, 1.0,
-                                       nothing, nothing)
-ClsTree(data, ftrsubset) = Tree(data, GiniNode(), 1, nothing, ftrsubset, nothing,
-                               nothing)
-ClsTree(data, minnode, maxdepth, ftrsubset) = Tree(data, GiniNode(), minnode, 
-                                                   maxdepth, ftrsubset,
                                                   nothing, nothing)
 
+ClsTree(data) = Tree(data, GiniNode(), 1, nothing, 1.0, nothing, nothing, nothing)
+ClsTree(data, minnode, maxdepth) = Tree(data, GiniNode(), minnode, maxdepth, 1.0,
+                                       nothing, nothing, nothing)
+ClsTree(data, ftrsubset) = Tree(data, GiniNode(), 1, nothing, ftrsubset, nothing,
+                               nothing, nothing)
+ClsTree(data, minnode, maxdepth, ftrsubset) = Tree(data, GiniNode(), minnode, 
+                                                   maxdepth, ftrsubset,
+                                                  nothing, nothing, nothing)
+
 Tree(data, root, minnode, maxdepth) = Tree(data, root, minnode, maxdepth, 1.0,
-                                          nothing, nothing)
+                                          nothing, nothing, nothing)
+
+Tree(data, root, minnode, maxdepth, λ) = Tree(data, root, minnode, maxdepth, 1.0,
+                                          nothing, nothing, λ)
 
 Tree(data, root, minnode, maxdepth, G, H) = Tree(data, root, minnode, maxdepth, 1.0,
-                                          G, H)
+                                          G, H, nothing)
+Tree(data, root, minnode, maxdepth, G, H, λ) = Tree(data, root, minnode, maxdepth, 1.0,
+                                          G, H, λ)
 
 """
     stopdividing(n[, cond])
@@ -104,7 +110,7 @@ end
 """
     evaluatesplit(ftr, val, n, tree)
 """
-function evaluatesplit(ftr::Int64, val::Float64, n::Node, tree)
+function evaluatesplit(ftr::Integer, val::Number, n::Node, tree)
     left, right = splitnode(ftr, val, n, tree.data)
     setprediction!(left, tree)
     setprediction!(right, tree)
@@ -133,7 +139,7 @@ end
 
 Find min and max of `ftr` in `n.datainds`.
 """
-function getextremas(ftr::Int64, n::Node, data)
+function getextremas(ftr::Number, n::Node, data)
     mi::Float64 = Inf
     ma::Float64 = -Inf
     for j = 1:length(n.datainds)
@@ -163,7 +169,6 @@ Find the best feature and its val for the given `node`.
 function findsplit!(n::Node, tree, ftrsubset=1.0)
     setprediction!(n, tree)
     bestscore = Inf
-    #printl("bestscore ", bestscore)
     bestftr, bestval = -1, 0.0
     for ftr = 1:length(tree.data[1])
         if skipftr(ftrsubset) && continue end
@@ -173,11 +178,7 @@ function findsplit!(n::Node, tree, ftrsubset=1.0)
         for i = 2:length(sorted) 
             if sorted[i][ftr] == sorted[i - 1][ftr] && continue end
             splitval = (sorted[i][ftr] + sorted[i - 1][ftr]) / 2
-            #println(ftr)
-            #println(splitval)
-            #println(sorted)
             candidatescore = evaluatesplit(ftr, splitval, n, tree)
-            #println("candidatescore ", candidatescore)
             if candidatescore < bestscore
                 bestscore = candidatescore
                 bestftr = ftr
@@ -187,7 +188,6 @@ function findsplit!(n::Node, tree, ftrsubset=1.0)
     end
     n.ftr = bestftr
     n.splitval = bestval
-    #println(bestftr, " ", bestval)
 end
 
 """

@@ -1,10 +1,10 @@
 using MLDatasets
 using DataFrames
 
-include("utils.jl")
-include("node.jl")
-include("boostforest.jl")
-include("regboostnode.jl")
+include("../src/utils.jl")
+include("../src/node.jl")
+include("../src/boostforest.jl")
+include("../src/regboostnode.jl")
 
 dataset = BostonHousing()
 

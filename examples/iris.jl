@@ -1,9 +1,10 @@
 using MLDatasets
 using DataFrames
 
-include("utils.jl")
-include("node.jl")
-include("randomforest.jl")
+include("../src/utils.jl")
+include("../src/node.jl")
+include("../src/randomforest.jl")
+include("../src/boostforest.jl")
 
 dataset = Iris()
 

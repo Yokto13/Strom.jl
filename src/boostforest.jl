@@ -10,7 +10,7 @@ mutable struct BoostForest
     data
     trees::Union{Vector, Vector{Vector}}
     treecnt::Integer
-    node 
+    node::BoostNode 
     minnode::Integer
     maxdepth::Integer
     bagging::Bool
@@ -21,7 +21,8 @@ mutable struct BoostForest
     logits::Matrix
     probs::Matrix
     treestrained::Integer
-    α::Float64
+    α::Number
+    λ::Number
 end
 
 getindex(f::BoostForest, i::Integer) = (f.trees[i])
@@ -41,7 +42,8 @@ BoostForest(data, treecnt, node) = BoostForest(data,
                                                reshape([],0,1),
                                                reshape([],0,1),
                                                0,
-                                               0.1
+                                               0.1,
+                                               1
                                               )
 
 BoostForest(data, treecnt, node, minnode=1, maxdepth=10,) = 
@@ -59,26 +61,27 @@ BoostForest(data,
              reshape([],0,1),
              reshape([],0,1),
              0,
-             0.1
+             0.1,
+             1
             )
 
 function updateG!(forest::BoostForest, c=nothing)
     preds = predictall(forest.data, forest)
     data = forest.data
-    if typeof(forest.node) == RegBoostNode
+    if forest.node isa RegBoostNode
         forest.G = [preds[i] - forest.data[i].y for i=1:length(forest.data)]
     end
-    if typeof(forest.node) == ClsBoostNode
+    if forest.node isa ClsBoostNode
         targets = [d.y for d in forest.data]
         forest.G = forest.probs[:, c] - (targets .== c)
     end
 end
 
 function updateH!(forest::BoostForest, c=nothing)
-    if typeof(forest.node) === RegBoostNode
+    if forest.node isa RegBoostNode
         forest.H = ones(length(forest.data))
     end
-    if typeof(forest.node) === ClsBoostNode
+    if forest.node isa ClsBoostNode
         forest.probs[:, c] = softmax(forest.logits[:, c])
         forest.H = forest.probs[:, c] .* (1 .- forest.probs[:, c])
     end
@@ -166,9 +169,6 @@ function buildtrees!(forest::BoostForest, node::ClsBoostNode)
             updateH!(forest, c)
             updateG!(forest, c)
             preds = predictall(forest.data, forest[timestamp][c])
-            # println(preds)
-            # println(forest.logits[:, c])
-            # preds = sum(preds, 1)
             forest.logits[:, c] += preds
         end
         forest.treestrained += 1
@@ -194,7 +194,7 @@ function createtimestamp(forest::BoostForest, node::RegBoostNode)
     treedata = Data(deepcopy(data.data), data.classcnt)
     treedata.data = treedata
     t = Tree(treedata, deepcopy(node), forest.minnode,
-             forest.maxdepth)
+             forest.maxdepth, forest.λ)
     return t
 end
 
@@ -206,6 +206,7 @@ function createtimestamp(forest::BoostForest, node::ClsBoostNode)
         treedata.data = treedata
         t = Tree(treedata, deepcopy(node), forest.minnode,
              forest.maxdepth)
+        t.λ = forest.λ
         push!(timestamp, t)
     end
     return timestamp

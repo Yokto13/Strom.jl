@@ -1,6 +1,6 @@
-include("../node.jl")
-include("../utils.jl")
-include("../tree.jl")
+include("../src/node.jl")
+include("../src/utils.jl")
+include("../src/tree.jl")
 
 using Test
 

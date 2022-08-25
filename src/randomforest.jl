@@ -8,7 +8,7 @@ mutable struct RandomForest
     data
     trees::Vector
     treecnt::Integer
-    node 
+    node::Node
     minnode::Integer
     maxdepth::Integer
     bagging::Bool
@@ -92,9 +92,6 @@ function createtrees!(forest::RandomForest)
     forest.trees = []
     datasetsize = forest.datasetsubset(length(forest.data))
     for i=1:forest.treecnt
-        # This is sooooo inefficient
-        # TODO solve deep copy thing
-        # TODO some profiling
         treedata = Data(deepcopy(forest.data.data), forest.data.classcnt)
         shuffle!(treedata.data)
         treedata.data = treedata[1:datasetsize]

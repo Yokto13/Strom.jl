@@ -7,7 +7,7 @@ mutable struct GiniNode <: ClsNode
     isleaf::Bool
     pred::Vector
     datainds::Vector{Int64}
-    splitval::Numeric64
+    splitval::Number
     ftr::Integer
     left::Union{Nothing, Node}
     right::Union{Nothing, Node}
@@ -22,7 +22,7 @@ mutable struct EntropyNode <: ClsNode
     isleaf::Bool
     pred::Vector
     datainds::Vector{Int64}
-    splitval::Numeric64
+    splitval::Number
     ftr::Integer
     left::Union{Nothing, Node}
     right::Union{Nothing, Node}

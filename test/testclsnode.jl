@@ -1,4 +1,4 @@
-include("../clsnode.jl")
+include("../src/clsnode.jl")
 
 using Test
 

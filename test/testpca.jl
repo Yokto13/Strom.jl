@@ -1,4 +1,4 @@
-include("../pca.jl")
+include("../src/pca.jl")
 
 using Test
 eps = 1e-7
@@ -55,9 +55,6 @@ end
 
 function test_svdproperties(A)
     U, Σ, V = SVD(A)
-    println("U ",U)
-    println("Si ",Σ)
-    println("V ", V)
     σs = []
     for i=1:size(Σ)[1]
         if i > size(Σ)[2]

@@ -1,4 +1,4 @@
-include("../tree.jl")
+include("../src/tree.jl")
 
 using Test
 

@@ -3,9 +3,9 @@ include("abstracttree.jl")
 
 mutable struct RegNode <: Node
     isleaf::Bool
-    pred::Numeric64
+    pred::Number
     datainds::Vector{Int64}
-    splitval::Numeric64
+    splitval::Number
     ftr::Integer
     left::Union{Nothing, Node}
     right::Union{Nothing, Node}
@@ -13,7 +13,7 @@ mutable struct RegNode <: Node
     id::Integer
 end
 
-RegNode(v::Vector{Int64}) = RegNode(false, -1, v, -1, -1, nothing, nothing, 1, 1)
+RegNode(v) = RegNode(false, -1, v, -1, -1, nothing, nothing, 1, 1)
 RegNode() = RegNode(false, -1, [], -1, -1, nothing, nothing, 1, 1)
 
 """ 

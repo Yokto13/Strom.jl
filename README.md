@@ -54,5 +54,7 @@ To see what you might do, please look to the examples folder.
 ## Plot results
 The project also provides plotting functionality.
 You can see some results bellow.
-![Xor contour plot](/examples/img/xourcontourfill.png)
+### Xor contour plot
+![Xor contour plot](/examples/img/xorcontourfill.png)
+### Xor classification tree
 ![Xor classification tree](/examples/img/tree.svg)

@@ -46,7 +46,7 @@ However, they don't use some optimization tricks and the heuristic
 for picking the best split might differ.
 
 ## Instalation
-To run this, you will need Julia in your PATH (download it [here] (https://julialang.org/downloads/)).
+To run this, you will need Julia in your PATH (download it [here](https://julialang.org/downloads/)).
 
 With this, you are ready to go.
 To see what you might do, please look at the examples directory.

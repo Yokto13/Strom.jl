@@ -131,24 +131,37 @@ By default `inittrees` is true and trees are instatiated by the function.
 You can also instantied them by yourself then set `inittrees` false 
 and `forest.trees` and `forest.treecnt` accordingly.
 """
-function buildforest!(forest::BoostForest, inittrees::Bool=true)
+function buildforest!(forest::BoostForest; inittrees::Bool=true, evloss=nothing)
     if inittrees
         createtrees!(forest)
     end
     @assert length(forest.trees) != 0
-    buildtrees!(forest, forest.node)
+    return buildtrees!(forest, forest.node, evloss)
 end
 
-function buildtrees!(forest::BoostForest, node::RegBoostNode)
+function step_buildtrees!(tree, forest::BoostForest, node::RegBoostNode)
+    tree.G = forest.G
+    tree.H = forest.H
+    buildtree!(tree)
+    forest.treestrained += 1
     updateH!(forest)
     updateG!(forest)
+end
+
+function buildtrees!(forest::BoostForest, node::RegBoostNode, evloss=nothing)
+    updateH!(forest)
+    updateG!(forest)
+    if !isnothing(evloss)
+        losses = []
+    end
     for tree=forest.trees
-        tree.G = forest.G
-        tree.H = forest.H
-        buildtree!(tree)
-        forest.treestrained += 1
-        updateH!(forest)
-        updateG!(forest)
+        step_buildtrees!(tree, forest, node)
+        if !isnothing(evloss)
+            push!(losses, evaluate(forest.data, forest, evloss))
+        end
+    end
+    if !isnothing(evloss)
+        return losses
     end
 end
 
@@ -157,21 +170,34 @@ function initpreds!(forest::BoostForest)
     forest.logits = zeros(length(forest.data), forest.data.classcnt)
 end
 
-function buildtrees!(forest::BoostForest, node::ClsBoostNode)
+function step_buildtrees!(timestamp, forest::BoostForest, node::ClsBoostNode)
+    for c=1:forest.data.classcnt
+        updateH!(forest, c)
+        updateG!(forest, c)
+        forest[timestamp][c].G = forest.G
+        forest[timestamp][c].H = forest.H
+        buildtree!(forest[timestamp][c])
+        updateH!(forest, c)
+        updateG!(forest, c)
+        preds = predictall(forest.data, forest[timestamp][c])
+        forest.logits[:, c] += preds
+    end
+    forest.treestrained += 1
+end
+
+function buildtrees!(forest::BoostForest, node::ClsBoostNode, evloss=nothing)
     initpreds!(forest)
+    if !isnothing(evloss)
+        losses = []
+    end
     for timestamp=1:forest.treecnt
-        for c=1:forest.data.classcnt
-            updateH!(forest, c)
-            updateG!(forest, c)
-            forest[timestamp][c].G = forest.G
-            forest[timestamp][c].H = forest.H
-            buildtree!(forest[timestamp][c])
-            updateH!(forest, c)
-            updateG!(forest, c)
-            preds = predictall(forest.data, forest[timestamp][c])
-            forest.logits[:, c] += preds
+        step_buildtrees!(timestamp, forest, node)
+        if !isnothing(evloss)
+            push!(losses, evaluate(forest.data, forest, evloss))
         end
-        forest.treestrained += 1
+    end
+    if !isnothing(evloss)
+        return losses
     end
 end
 

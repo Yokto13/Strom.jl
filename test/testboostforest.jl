@@ -6,6 +6,8 @@ include("../src/clsboostnode.jl")
 
 using Test
 
+eps = 1e-7
+
 @testset "updateG!()" begin
     data = Data([
             Dato([1,2,3], 3),
@@ -66,6 +68,10 @@ end
     @test forest.H ≈ sf .* (1 .- sf)
 end
 
+function cse(pvec, correct_cls)
+    return - log(pvec[correct_cls])
+end
+
 @testset "predict()" begin
     data = Data([
             Dato([1,2,3], 3),
@@ -76,19 +82,26 @@ end
             Dato([0,2,1], 1),
             Dato([5,2,3], 3),
            ], 3)
-    treecnt = 20
+    treecnt = 200
     forest = BoostForest(data, treecnt, RegBoostNode())
-    buildforest!(forest)
+    losses = buildforest!(forest, evloss=(x, y) -> (x - y) ^ 2)
+    for i=1:length(losses) - 1
+        @test losses[i] ≥ losses[i + 1]
+    end
     for d=data
         @test d.y == round(predict(d, forest))
     end
-    treecnt = 4
-    #forest = BoostForest(data, treecnt, ClsBoostNode())
-    #buildforest!(forest)
-    #for d=data
-    #    println(predict(d, forest), " ", d.y)
-    #    @test d.y == argmax(predict(d, forest))
-    #end
+    @test evaluate(data, forest, (x, y) -> (x - y) ^ 2) - eps < 0
+    treecnt = 200
+    forest = BoostForest(data, treecnt, ClsBoostNode())
+    losses = buildforest!(forest, evloss=cse)
+    for i=1:length(losses) - 1
+        @test losses[i] ≥ losses[i + 1]
+    end
+    for d=data
+        println(predict(d, forest), " ", d.y)
+        @test d.y == argmax(predict(d, forest))
+    end
 end
 
 @testset "learningrate" begin

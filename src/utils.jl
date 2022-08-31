@@ -120,3 +120,12 @@ function softmax(m)
     exped = exp.(m .- ma)
     exped / sum(exped, dims=lastdim)
 end
+
+function evaluate(data, predictor, loss_f)
+    preds = predictall(data, predictor)
+    loss = 0
+    for (p, d) in zip(preds, data)
+        loss += loss_f(p, d.y)
+    end
+    return loss
+end

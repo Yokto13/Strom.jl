@@ -7,13 +7,12 @@ mutable struct RandomForest
     node::Node
     minnode::Integer
     maxdepth::Integer
-    bagging::Bool
     ftrsubset::Function
     datasetsubset::Function
 end
 
 RandomForest(data, treecnt, node) = RandomForest(data, [], treecnt, 
-                                                     node, 1, 1000, true, 
+                                                     node, 1, 1000,
                                                      x -> Integer(ceil(sqrt(x))),
                                                      x -> Integer(ceil(sqrt(x))))
 
@@ -24,7 +23,6 @@ RandomForest(data,
              node, 
              minnode, 
              maxdepth, 
-             true,
              x -> Integer(ceil(sqrt(x))),
              x -> Integer(ceil(sqrt(x)))
            )
@@ -62,7 +60,7 @@ end
 """
     buildforest!(forest[,inittrees])
 
-Build forest by repeatedly building each tree.
+Build forest by repeatedly building each tree.o
 
 By default `inittrees` is true and trees are instatiated by the function.
 You can also instantied them by yourself then set `inittrees` false 
@@ -92,7 +90,7 @@ function createtrees!(forest::RandomForest)
         shuffle!(treedata.data)
         treedata.data = treedata[1:datasetsize]
         t = Tree(treedata, deepcopy(forest.node), forest.minnode,
-                 forest.maxdepth)
+                 forest.maxdepth, forest.ftrsubset(length(forest.data[1])))
         push!(forest.trees, t)
     end
 end

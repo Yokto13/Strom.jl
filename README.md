@@ -61,7 +61,7 @@ From now on, the project is set up as a package (similarly to how it works in
 Python). 
 You can start any examples by
 ```
-julia project=PATH_TO_REPO PATH_TO_EXAMPLES/EXAMPLE
+julia --project=PATH_TO_REPO PATH_TO_EXAMPLES/EXAMPLE
 ```
 
 or directly from REPL (if the project is already *pkg* activated) like:

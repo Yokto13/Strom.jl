@@ -48,7 +48,29 @@ for picking the best split might differ.
 ## Instalation
 To run this, you will need Julia in your PATH (download it [here](https://julialang.org/downloads/)).
 
-To load it the project as a module, execute the following
+To install all dependencies go to the project repository,
+open REPL (just type julia) and enter *pkg* 
+interface by typing `]`.
+In *pkg* interface invoke following commands
+```
+activate .
+instantiate
+```
+
+From now on, the project is set up as a package (similarly to how it works in
+Python). 
+You can start any examples by
+```
+julia project=PATH_TO_REPO PATH_TO_EXAMPLES/EXAMPLE
+```
+
+or directly from REPL (if the project is already *pkg* activated) like:
+
+```
+include("PATH_TO_EXAMPLES/EXAMPLE")
+```
+
+To load the project as a module, execute the following
 ```
 include("PATH-TO-REPO/src/Strom.jl")
 using .Strom

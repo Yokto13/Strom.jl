@@ -1,9 +1,5 @@
 using Random
 
-include("clsnode.jl")
-include("regnode.jl")
-include("tree.jl")
-
 mutable struct RandomForest 
     data
     trees::Vector

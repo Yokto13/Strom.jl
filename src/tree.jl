@@ -3,10 +3,6 @@ using Random
 rng_seed = 42
 Random.seed!(rng_seed)
 
-include("regnode.jl")
-include("clsnode.jl")
-include("abstracttree.jl")
-
 mutable struct Tree <: AbstractTree
     data
     root::Node

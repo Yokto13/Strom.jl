@@ -1,11 +1,5 @@
 using Random
 
-include("node.jl")
-include("utils.jl")
-include("tree.jl")
-include("regboostnode.jl")
-include("clsboostnode.jl")
-
 mutable struct BoostForest
     data
     trees::Union{Vector, Vector{Vector}}

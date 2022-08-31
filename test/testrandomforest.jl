@@ -1,4 +1,8 @@
 include("../src/node.jl")
+include("../src/abstracttree.jl")
+include("../src/tree.jl")
+include("../src/clsnode.jl")
+include("../src/regnode.jl")
 include("../src/utils.jl")
 include("../src/randomforest.jl")
 

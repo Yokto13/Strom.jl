@@ -1,10 +1,8 @@
 using MLDatasets
 using DataFrames
 
-include("../src/utils.jl")
-include("../src/node.jl")
-include("../src/randomforest.jl")
-include("../src/boostforest.jl")
+include("../src/Strom.jl")
+using .Strom
 
 dataset = Iris()
 

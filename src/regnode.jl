@@ -1,6 +1,3 @@
-include("node.jl")
-include("abstracttree.jl")
-
 mutable struct RegNode <: Node
     isleaf::Bool
     pred::Number

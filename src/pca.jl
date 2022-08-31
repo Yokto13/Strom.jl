@@ -1,8 +1,7 @@
-# Functions in this feel were written for author's enjoynment. 
-# They are not optimized and their tests are very basic.
-# Most of them are implemented in LinearAlgebra package and this 
-# package should be used in real applications instead of this.
-# --arklez
+# Most of the functions in this file are also 
+# implemented in LinearAlgebra package and this 
+# package should be used in real applications instead of this file.
+# --DF
 
 using LinearAlgebra
 

@@ -1,5 +1,3 @@
-include("boostforest.jl")
-
 using Plots
 using GraphPlot
 using Graphs

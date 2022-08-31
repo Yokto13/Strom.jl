@@ -1,5 +1,3 @@
-include("node.jl")
-
 abstract type BoostNode <: Node end
 
 """

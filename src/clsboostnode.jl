@@ -1,5 +1,3 @@
-include("boostnode.jl")
-
 mutable struct ClsBoostNode <: BoostNode
     isleaf::Bool
     pred::Number

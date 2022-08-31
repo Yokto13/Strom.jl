@@ -1,7 +1,8 @@
-include("../src/plot.jl")
-
 using MLDatasets
 using DataFrames
+
+include("../src/Strom.jl")
+using .Strom
 
 data = Data([
         Dato([1,2,3], 3),
@@ -14,11 +15,11 @@ data = Data([
         ], 3)
 treecnt = 20
 forest = BoostForest(data, treecnt, RegBoostNode())
-#boostloss(forest, forest.data, "boostplot.png")
-#boostloss(forest, forest.data, "boostplotscatter.png"; seriestype = :scatter)
+boostloss(forest, forest.data, "boostplot.png")
+boostloss(forest, forest.data, "boostplotscatter.png"; seriestype = :scatter)
 
-#boosttraintest(forest, Data(data[1:4], 3), Data(data[5:end], 3), 
-#               "boosttraintest_simple.png")
+boosttraintest(forest, Data(data[1:4], 3), Data(data[5:end], 3), 
+               "boosttraintest_simple.png")
 
 dataset = BostonHousing()
 
@@ -28,12 +29,12 @@ for i=1:506
     push!(data, Dato(row[1:13], row[14]))
 end
 
-#train = Data(data[1:400], 1)
-#test = Data(data[401:506], 1)
+train = Data(data[1:400], 1)
+test = Data(data[401:506], 1)
 
-#forest = BoostForest(train, treecnt, RegBoostNode())
-#boosttraintest(forest, train, test, 
-#               "boosttraintest_boston.png")
+forest = BoostForest(train, treecnt, RegBoostNode())
+boosttraintest(forest, train, test, 
+               "boosttraintest_boston.png")
 
 data2d = Data([
             Dato([0, 0,], 2),

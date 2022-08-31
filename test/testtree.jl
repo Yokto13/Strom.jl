@@ -1,4 +1,9 @@
+include("../src/node.jl")
+include("../src/abstracttree.jl")
+include("../src/utils.jl")
 include("../src/tree.jl")
+include("../src/clsnode.jl")
+include("../src/regnode.jl")
 
 using Test
 

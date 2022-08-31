@@ -1,6 +1,3 @@
-include("node.jl")
-include("abstracttree.jl")
-
 abstract type ClsNode <: Node end
 
 mutable struct GiniNode <: ClsNode

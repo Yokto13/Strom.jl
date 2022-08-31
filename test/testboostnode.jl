@@ -1,3 +1,5 @@
+include("../src/node.jl")
+include("../src/abstracttree.jl")
 include("../src/boostnode.jl")
 include("../src/regboostnode.jl")
 include("../src/clsboostnode.jl")

@@ -48,8 +48,14 @@ for picking the best split might differ.
 ## Instalation
 To run this, you will need Julia in your PATH (download it [here](https://julialang.org/downloads/)).
 
+To load it the project as a module, execute the following
+```
+include("PATH-TO-REPO/src/Strom.jl")
+using .Strom
+```
+
 With this, you are ready to go.
-To see what you might do, please look at the examples directory.
+To see what you might do, it's best to look at the examples directory.
 
 ## Plot results
 The project also provides plotting functionality.

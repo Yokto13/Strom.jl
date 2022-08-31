@@ -1,8 +1,11 @@
 include("../src/node.jl")
 include("../src/utils.jl")
-include("../src/boostforest.jl")
+include("../src/boostnode.jl")
 include("../src/regboostnode.jl")
 include("../src/clsboostnode.jl")
+include("../src/boostforest.jl")
+include("../src/abstracttree.jl")
+include("../src/tree.jl")
 
 using Test
 
@@ -40,30 +43,20 @@ end
             Dato([5,2,3], 3),
            ], 3)
     treecnt = 200
-    println("11")
     forest = BoostForest(data, treecnt, RegBoostNode())
-    println("111")
     updateH!(forest)
-    println("111")
     @test forest.H == ones(length(data))
     # --------------------- cls:
     treecnt = 200
     forest = BoostForest(data, treecnt, ClsBoostNode())
-    println("111")
-    println("111??")
     initpreds!(forest)
-    println("112")
     updateH!(forest, 2)
-    println("112")
     @test length(forest.H) == length(data)
-    print("C")
     forest = BoostForest(Data(data[1:3], 3), treecnt, ClsBoostNode())
     initpreds!(forest)
     forest.logits = [1 0.5 0; 0.5 0.5 0; 0 0.5 10]
     sf = softmax(forest.logits[:, 1])
-    println(sf)
     updateH!(forest, 1)
-    print("B")
     @test length(forest.H) == 3
     @test forest.H ≈ sf .* (1 .- sf)
 end
@@ -99,7 +92,6 @@ end
         @test losses[i] ≥ losses[i + 1]
     end
     for d=data
-        println(predict(d, forest), " ", d.y)
         @test d.y == argmax(predict(d, forest))
     end
 end

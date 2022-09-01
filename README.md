@@ -59,20 +59,20 @@ instantiate
 
 From now on, the project is set up as a package (similarly to how it works in
 Python). 
-You can start any examples by
+You can start any example by
 ```
-julia project=PATH_TO_REPO PATH_TO_EXAMPLES/EXAMPLE
+julia --project=PATH_TO_REPO PATH_TO_REPO/examples/EXAMPLE
 ```
 
 or directly from REPL (if the project is already *pkg* activated) like:
 
 ```
-include("PATH_TO_EXAMPLES/EXAMPLE")
+include("PATH_TO_REPO/examples/EXAMPLE")
 ```
 
 To load the project as a module, execute the following
 ```
-include("PATH-TO-REPO/src/Strom.jl")
+include("PATH_TO_REPO/src/Strom.jl")
 using .Strom
 ```
 

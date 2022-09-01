@@ -4,6 +4,8 @@ using DataFrames
 include("../src/Strom.jl")
 using .Strom
 
+println("Loading data.")
+
 dataset = BostonHousing()
 
 data = []
@@ -14,6 +16,8 @@ end
 
 train = data[1:100]
 test = data[401:506]
+
+println("Data loaded.")
 
 rt1 = RegTree(train, 2, 10000); buildtree!(rt1)
 println("Tree 1 built. ",rt1.minnode)
@@ -28,6 +32,7 @@ bs = []
 for i=1:8
     push!(bs, BoostForest(Data(train, 1), 2 ^ i, RegBoostNode()))
     buildforest!(bs[i])
+    println("Boost forest with ", 2 ^ i, "trees built.")
     println("Boost ", i,  " loss on train ", MSE_all(Data(train, 1), bs[i]))
     println("Boost ", i, " loss on test ", MSE_all(Data(test, 1), bs[i]))
 end

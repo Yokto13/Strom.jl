@@ -2,7 +2,7 @@ using Plots
 using GraphPlot
 using Graphs
 using LayeredLayouts
-import Gadfly: gplot, cm, SVG, draw
+import Gadfly: cm, SVG, draw
 
 
 """

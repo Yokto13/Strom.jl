@@ -45,8 +45,5 @@ data2d = Data([
 
 ct = ClsTree(data2d)
 buildtree!(ct)
-for d=data2d
-    println(predict(d, ct))
-end
 treecontour(ct, 0:0.05:1, 0:0.05:1, "xorcontourfill.png", fill=true)
 printtree(ct)

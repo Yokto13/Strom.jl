@@ -10,7 +10,7 @@ Common algorithms for decision trees.
 - [X] Random forests
 - [X] Visualisation of results
 - [X] GBDT regression
-- [ ] GBDT classification (somewhat working, bugs in current implementation)
+- [X] GBDT classification
 - [X] PCA
 - [X] SVD
 - [X] Gauss-Jordan

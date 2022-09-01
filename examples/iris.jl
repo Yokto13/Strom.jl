@@ -4,6 +4,8 @@ using DataFrames
 include("../src/Strom.jl")
 using .Strom
 
+println("Loading data.")
+
 dataset = Iris()
 
 data = []
@@ -40,58 +42,49 @@ test =  Data(test, 3)
 #println(train)
 #println(test)
 
+println("Data loaded.")
+
 trees = [
         ClsTree(train, 1, 10000),
-        ClsTree(train, 3, 10000),
-        ClsTree(train, 5, 10000),
         ClsTree(train, 10, 10000),
-        ClsTree(train, 20, 10000),
         ClsTree(train, 1, 100),
-        ClsTree(train, 3, 100),
-        ClsTree(train, 5, 100),
         ClsTree(train, 10, 100),
-        ClsTree(train, 20, 100),
         ClsTree(train, 1, 10),
-        ClsTree(train, 3, 10),
-        ClsTree(train, 5, 10),
         ClsTree(train, 10, 10),
-        ClsTree(train, 20, 10),
         ClsTree(train, 1, 5),
-        ClsTree(train, 3, 5),
-        ClsTree(train, 5, 5),
         ClsTree(train, 10, 5),
-        ClsTree(train, 20, 5),
         ClsTree(train, 1, 3),
-        ClsTree(train, 3, 3),
-        ClsTree(train, 5, 3),
         ClsTree(train, 10, 3),
-        ClsTree(train, 20, 3),
-        ClsTree(train, 20, 2),
         ClsTree(train, 1, 2),
-        ClsTree(train, 3, 2),
-        ClsTree(train, 5, 2),
         ClsTree(train, 10, 2),
-        ClsTree(train, 20, 2),
-        ClsTree(train, 40, 2),
         ClsTree(train, 60, 2),
        ]
+
+println("Trees created.")
 
 forests = [
         RandomForest(train, 5, GiniNode()),
         RandomForest(train, 10, GiniNode()),
-        RandomForest(train, 50, GiniNode()),
-        RandomForest(train, 100, GiniNode()),
         RandomForest(train, 300, GiniNode()),
-        RandomForest(train, 3000, GiniNode(), 3, 3),
+        BoostForest(train, 30, ClsBoostNode()),
+        BoostForest(train, 50, ClsBoostNode()),
           ]
+
+println("Forests created.")
 
 for t=trees
     buildtree!(t)
 end
 
+println("Trees trained.")
+
 for f=forests
     buildforest!(f)
 end
+
+println("Forests trained.")
+
+println("Prediction phase...")
 for t=trees
     println(t.minnode, " ", t.maxdepth)
     prds = predictall(train, t)
@@ -111,6 +104,8 @@ for t=trees
     println(accuracy(pairs))
     println("-----------")
 end
+
+println("Forest predictions.")
 
 for t=forests
     println(t.minnode, " ", t.maxdepth)
